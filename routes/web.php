@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::redirect('/', '/home');
+Route::redirect('/', '/inicio');
 
 Volt::route('/login', 'auth.login')
     ->name('login');
 
-Volt::route('/home', 'home.index')
-    ->name('home.index');
+Volt::route('/inicio', 'inicio.index')
+    ->name('inicio.index');
 
 //

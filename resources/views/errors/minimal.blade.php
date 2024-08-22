@@ -52,7 +52,7 @@
                                 <p class="mt-2 mb-4 text-muted">
                                     @yield('message')
                                 </p>
-                                <a href="{{ route('home.index') }}" class="btn btn-primary mb-3">
+                                <a href="{{ route('inicio.index') }}" class="btn btn-primary mb-3">
                                     Volver al inicio
                                 </a>
                             </div>
