@@ -31,8 +31,8 @@ class Trabajador extends Model
     ];
 
     //Relaciones
-    
-    public function OficinaCargo(): BelongsTo
+
+    public function oficina_cargo(): BelongsTo
     {
         return $this->belongsTo(OficinaCargo::class, 'id_oca');
     }
