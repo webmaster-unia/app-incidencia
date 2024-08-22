@@ -41,7 +41,6 @@
         <div
             class="auth-wrapper v1"
             style="background-image: url('{{ asset('media/img/fondo-unia.webp') }}'); background-size: cover; background-repeat: no-repeat; background-attachment: fixed; background-position: center;"
-            {{-- style="background-image: url('{{ asset('media/img/fondo-prueba.jpeg') }}'); background-size: cover; background-repeat: no-repeat; background-attachment: fixed; background-position: center;" --}}
         >
             {{ $slot }}
         </div>

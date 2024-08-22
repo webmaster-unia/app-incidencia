@@ -51,9 +51,11 @@ new #[Layout('components.layouts.auth')] #[Title('Login | SIGEIN OTI')] class ex
 <div class="auth-form">
     <div
         class="card my-5 animate__animated animate__fadeIn animate__faster"
-        {{-- style="background-image: url('{{ asset('media/img/fondo-unia.webp') }}'); background-size: cover; background-repeat: no-repeat; background-attachment: fixed; background-position: center;" --}}
     >
-        <form class="card-body" wire:submit="login">
+        <form
+            class="card-body"
+            wire:submit="login"
+        >
             <div class="text-center">
                 <img src="{{ asset('media/img/logo-unia-2.png') }}" alt="img" class="img-fluid mb-4" width="90" />
                 <p class="fs-7 fw-semibold text-gray-600">
@@ -65,18 +67,26 @@ new #[Layout('components.layouts.auth')] #[Title('Login | SIGEIN OTI')] class ex
                 Inicie Sesión con su Cuenta
             </h3>
             <div class="mb-3">
-                <input type="text" wire:model.live="correo"
-                    class="form-control @if ($errors->has('correo')) is-invalid @endif" id="correo"
-                    placeholder="Correo Electrónico" />
+                <input
+                    type="text"
+                    wire:model.live="correo"
+                    class="form-control @if ($errors->has('correo')) is-invalid @endif"
+                    id="correo"
+                    placeholder="Correo Electrónico"
+                />
                 @error('correo')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
                 <div class="input-group search-form">
-                    <input type="{{ $typeInput }}" wire:model.live="contrasena"
-                        class="form-control @if ($errors->has('contrasena')) is-invalid @endif" id="contrasena"
-                        placeholder="Contraseña">
+                    <input
+                        type="{{ $typeInput }}"
+                        wire:model.live="contrasena"
+                        class="form-control @if ($errors->has('contrasena')) is-invalid @endif"
+                        id="contrasena"
+                        placeholder="Contraseña"
+                    />
                     <span class="input-group-text bg-transparent" style="cursor: pointer;" wire:click="changeTypeInput">
                         <i class="{{ $icon }} text-muted"></i>
                     </span>
