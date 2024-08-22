@@ -38,6 +38,7 @@ class Usuario extends Authenticatable
     {
         return $this->belongsTo(Rol::class, 'id_rol');
     }
+    
     public function trabajador_activo(): BelongsTo
     {
         return $this->belongsTo(Trabajador::class, 'id_tra');
