@@ -19,14 +19,12 @@ class Adjuntos extends Model
         'nombre_adj',
         'activo_adj',
         'id_inc'
-
     ];
 
     public $timestamps = false;
 
     protected $casts = [
         'activo_adj' => 'boolean',
-
     ];
 
 }
