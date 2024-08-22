@@ -32,12 +32,7 @@ class Trabajador extends Model
 
     //Relaciones
 
-    public function Trabajador(): BelongsTo
-    {
-        return $this->belongsTo(Trabajador::class, 'id_tra');
-    }
-    // Relaciones
-    public function OficinaCargo(): BelongsTo
+    public function oficina_cargo(): BelongsTo
     {
         return $this->belongsTo(OficinaCargo::class, 'id_oca');
     }
