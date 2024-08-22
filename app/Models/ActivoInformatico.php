@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class ActivoInformatico extends Model
 {
     use HasFactory;
+
     protected $table = 'tbl_activo_informatico';
     protected $primaryKey = 'id_ain';
     protected $fillable = [
@@ -23,5 +24,8 @@ class ActivoInformatico extends Model
     protected $casts = [
         'activo_ain' => 'boolean'
     ];
-
+    public function tipo_activo(): BelongsTo
+    {
+        return $this->belongsTo(TipoActivo::class, 'id_tac');
+    }
 }

@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Incidencia extends Model
 {
     use HasFactory;
+
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
     protected $table = 'tbl_incidencia';
@@ -23,7 +25,7 @@ class Incidencia extends Model
         'estado_inc',
         'id_usu',
         'id_tat',
-        'id_tco',
+        'id_com',
     ];
 
     public $timestamps = false;
@@ -35,4 +37,16 @@ class Incidencia extends Model
         'creado_en'  => 'date_time',
         'actualizado_en'=> 'date_time'
     ];
+    public function usuario(): BelongsTo
+    {
+        return $this->belongsTo(Usuario::class, 'id_usu');
+    }
+    public function trabajador_activo(): BelongsTo
+    {
+        return $this->belongsTo(TrabajadorActivo::class, 'id_tat');
+    }
+    public function complejidad(): BelongsTo
+    {
+        return $this->belongsTo(Complejidad::class, 'id_com');
+    }
 }
