@@ -32,12 +32,12 @@ class TrabajadorActivo extends Model
 
     //Relaciones
 
-    public function TrabajadorActivo(): BelongsTo
+    public function trabajador_activo(): BelongsTo
     {
         return $this->belongsTo(Trabajador::class, 'id_tra');
     }
      // Relaciones
-    public function ActivoInformatico(): BelongsTo
+    public function activo_informatico(): BelongsTo
     {
         return $this->belongsTo(ActivoInformatico::class, 'id_ain');
     }
