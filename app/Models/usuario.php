@@ -32,17 +32,15 @@ class Usuario extends Authenticatable
         'actualizado_en' => 'datetime'
     ];
 
-    //Relaciones
+    // Relaciones
 
     public function rol(): BelongsTo
     {
         return $this->belongsTo(Rol::class, 'id_rol');
     }
-    
-    public function trabajador_activo(): BelongsTo
+
+    public function trabajador(): BelongsTo
     {
         return $this->belongsTo(Trabajador::class, 'id_tra');
     }
 }
-
-
