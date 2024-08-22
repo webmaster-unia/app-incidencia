@@ -17,12 +17,16 @@ class RolPermiso extends Model
         'id_acc',
         'id_rol'
     ];
-    // Realaciones
+    
     public $timestamps = false;
+    
+    // Realaciones
+
     public function accion(): BelongsTo
     {
         return $this->belongsTo(Accion::class, 'id_acc');
     }
+    
     public function rol(): BelongsTo
     {
         return $this->belongsTo(Rol::class, 'id_rol');
