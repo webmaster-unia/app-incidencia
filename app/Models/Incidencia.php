@@ -37,14 +37,18 @@ class Incidencia extends Model
         'creado_en'  => 'date_time',
         'actualizado_en'=> 'date_time'
     ];
+    //relaciones
+    
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'id_usu');
     }
+
     public function trabajador_activo(): BelongsTo
     {
         return $this->belongsTo(TrabajadorActivo::class, 'id_tat');
     }
+
     public function complejidad(): BelongsTo
     {
         return $this->belongsTo(Complejidad::class, 'id_com');

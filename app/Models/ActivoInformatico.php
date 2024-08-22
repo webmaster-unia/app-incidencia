@@ -24,6 +24,8 @@ class ActivoInformatico extends Model
     protected $casts = [
         'activo_ain' => 'boolean'
     ];
+    //relaciones
+    
     public function tipo_activo(): BelongsTo
     {
         return $this->belongsTo(TipoActivo::class, 'id_tac');

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Accion extends Model
 {
     use HasFactory;
+    
     protected $table = 'tbl_accion';
     protected $primaryKey = 'id_acc';
     protected $fillable = [

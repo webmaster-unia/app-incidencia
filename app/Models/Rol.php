@@ -16,12 +16,12 @@ class Rol extends Model
         'nombre_rol',
         'descripción_rol',
         'slug_rol',
-        'activo_ofi'
+        'activo_rol'
     ];
 
     public $timestamps = false;
 
     protected $casts = [
-        'activo_per' => 'boolean'
+        'activo_rol' => 'boolean'
     ];
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Permiso extends Model
 {
     use HasFactory;
@@ -15,7 +16,7 @@ class Permiso extends Model
         'id_per',
         'nombre_per',
         'slug_per',
-        'activo_ofi'
+        'activo_per'
     ];
 
     public $timestamps = false;
