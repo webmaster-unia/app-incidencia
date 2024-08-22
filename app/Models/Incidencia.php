@@ -11,7 +11,6 @@ class Incidencia extends Model
 
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
-
     protected $table = 'tbl_incidencia';
     protected $primaryKey = 'id_inc';
     protected $fillable = [
@@ -26,7 +25,6 @@ class Incidencia extends Model
         'id_usu',
         'id_tat',
         'id_tco',
-
     ];
 
     public $timestamps = false;
@@ -37,7 +35,5 @@ class Incidencia extends Model
         'activo_car' => 'boolean',
         'creado_en'  => 'date_time',
         'actualizado_en'=> 'date_time'
-
-
     ];
 }
