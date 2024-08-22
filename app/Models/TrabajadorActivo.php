@@ -24,8 +24,6 @@ class TrabajadorActivo extends Model
         'id_ain'
     ];
 
-    public $timestamps = false;
-
     protected $casts = [
         'activo_tat' => 'boolean',
         'creado_en' => 'datetime',

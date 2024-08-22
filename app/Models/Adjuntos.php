@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Adjuntos extends Model
 {
     use HasFactory;
+
     protected $table = 'tbl_adjunto';
     protected $primaryKey = 'id_adj';
     protected $fillable = [
@@ -24,5 +25,8 @@ class Adjuntos extends Model
     protected $casts = [
         'activo_adj' => 'boolean',
     ];
-
+    public function incidencia(): BelongsTo
+    {
+        return $this->belongsTo(Incidencia::class, 'id_inc');
+    }
 }

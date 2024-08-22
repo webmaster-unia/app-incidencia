@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Cargo extends Model
 {
     use HasFactory;
+    
     protected $table = 'tbl_cargo';
     protected $primaryKey = 'id_car';
     protected $fillable = [

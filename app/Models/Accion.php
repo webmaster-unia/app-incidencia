@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Accion extends Model
 {
@@ -24,4 +24,11 @@ class Accion extends Model
     protected $casts = [
         'activo_acc' => 'boolean'
     ];
+
+    // Relaciones
+
+    public function permiso(): BelongsTo
+    {
+        return $this->belongsTo(Permiso::class, 'id_per');
+    }
 }
