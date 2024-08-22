@@ -4,10 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Trabajador extends Model
 {
     use HasFactory;
+
+    const CREATED_AT = 'creado_en';
+    const UPDATED_AT = 'actualizado_en';
 
     protected $table = 'tbl_trabajador';
     protected $primaryKey = 'id_tra';
@@ -23,10 +27,20 @@ class Trabajador extends Model
     public $timestamps = false;
 
     protected $casts = [
-        'activo_ofi' => 'boolean',
+        'activo_tat' => 'boolean',
         'creado_en' => 'datetime',
         'actualizado_en' => 'datetime'
     ];
+
+    public function Trabajador(): BelongsTo
+    {
+        return $this->belongsTo(Trabajador::class, 'id_tra');
+    }
+    // Relaciones
+    public function OficinaCargo(): BelongsTo
+    {
+        return $this->belongsTo(OficinaCargo::class, 'id_oca');
+    }
 }
 
 

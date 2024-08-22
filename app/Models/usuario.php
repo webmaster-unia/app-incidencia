@@ -4,16 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class usuario extends Model
 {
     use HasFactory;
+
+    const CREATED_AT = 'creado_en';
+    const UPDATED_AT = 'actualizado_en';
+
     protected $table = 'tbl_usuario';
     protected $primaryKey = 'id_usu';
     protected $fillable = [
         'id_usu',
         'correo_usu',
-        'contraseña_usu',
+        'contrasena_usu',
         'foto_usu',
         'remember_token',
         'activo_usu',
@@ -24,10 +29,20 @@ class usuario extends Model
     public $timestamps = false;
 
     protected $casts = [
-        'activo_ofi' => 'boolean',
+        'activo_tat' => 'boolean',
         'creado_en' => 'datetime',
-        'actualizado_en' => 'datetime',
+        'actualizado_en' => 'datetime'
     ];
+
+    public function Rol(): BelongsTo
+    {
+        return $this->belongsTo(Rol::class, 'id_rol');
+    }
+    // Relaciones
+    public function TrabajadorActivo(): BelongsTo
+    {
+        return $this->belongsTo(Trabajador::class, 'id_tra');
+    }
 }
 
 

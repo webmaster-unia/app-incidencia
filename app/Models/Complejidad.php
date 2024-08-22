@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TipoComplejidad extends Model
+class Complejidad extends Model
 {
     use HasFactory;
     protected $table = 'tbl_complejidad';
@@ -13,8 +13,8 @@ class TipoComplejidad extends Model
     protected $fillable = [
         'id_com',
         'nombre_com',
-        'activo_com',
-        'id_inc'
+        'orden_com',
+        'activo_com'
     ];
 
     public $timestamps = false;
