@@ -25,8 +25,9 @@ class Adjuntos extends Model
     protected $casts = [
         'activo_adj' => 'boolean',
     ];
-    //relaciones
     
+    // Relaciones
+
     public function incidencia(): BelongsTo
     {
         return $this->belongsTo(Incidencia::class, 'id_inc');
