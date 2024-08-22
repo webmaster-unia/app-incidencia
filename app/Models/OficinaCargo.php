@@ -26,4 +26,8 @@ class OficinaCargo extends Model
     {
         return $this->belongsTo(Oficina::class, 'id_ofi');
     }
+    public function cargo(): BelongsTo
+    {
+        return $this->belongsTo(Cargo::class, 'id_car');
+    }
 }
