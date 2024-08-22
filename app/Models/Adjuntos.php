@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Adjuntos extends Model
 {
-
-
     use HasFactory;
     protected $table = 'tbl_adjunto';
     protected $primaryKey = 'id_adj';

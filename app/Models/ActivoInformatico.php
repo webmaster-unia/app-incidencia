@@ -16,7 +16,6 @@ class ActivoInformatico extends Model
         'nombre_ain',
         'activo_ain',
         'id_tac',
-        
     ];
 
     public $timestamps = false;
@@ -24,5 +23,5 @@ class ActivoInformatico extends Model
     protected $casts = [
         'activo_ain' => 'boolean'
     ];
-    
+
 }
