@@ -20,8 +20,6 @@ class Trabajador extends Model
         'id_oca'
     ];
 
-    public $timestamps = false;
-
     protected $casts = [
         'activo_ofi' => 'boolean',
         'creado_en' => 'datetime',

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TrabajadorActivo extends Model
 {
     use HasFactory;
+
     protected $table = 'tbl_tabajador_activo';
     protected $primaryKey = 'id_tat';
     protected $fillable = [
@@ -18,8 +19,6 @@ class TrabajadorActivo extends Model
         'id_tra',
         'id_ain'
     ];
-
-    public $timestamps = false;
 
     protected $casts = [
         'activo_tat' => 'boolean',

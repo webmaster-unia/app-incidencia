@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TipoActivo extends Model
 {
     use HasFactory;
+    
     protected $table = 'tbl_tipo_activo';
     protected $primaryKey = 'id_tac';
     protected $fillable = [

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class TipoComplejidad extends Model
 {
     use HasFactory;
+    
     protected $table = 'tbl_complejidad';
     protected $primaryKey = 'id_com';
     protected $fillable = [
