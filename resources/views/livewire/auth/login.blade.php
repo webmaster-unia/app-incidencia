@@ -5,41 +5,59 @@ use Livewire\Attributes\{Layout, Title, Validate};
 use App\Models\{Usuario};
 use Illuminate\Support\Facades\Hash;
 
-new #[Layout('components.layouts.auth')] #[Title('Login | SIGEIN OTI')] class extends Component {
+new
+#[Layout('components.layouts.auth')]
+#[Title('Login | SIGEIN OTI')]
+class extends Component {
+
+    // Variables del formulario
     #[Validate('required|email')]
     public string $correo = '';
     #[Validate('required')]
     public string $contrasena = '';
-    public $recuerdame = false;
+    public bool $recuerdame = false;
 
+    // Variables para el input de la contraseña
     public string $typeInput = 'password';
     public string $icon = 'feather icon-eye';
 
+    // Metodo para el login
     public function login()
     {
-        sleep(2);
+        // Aqui validamos los campos del formulario
+        $this->validate();
 
-        // $this->validate();
+        // Buscamos al usuario por su correo
+        $usuario = Usuario::query()
+            ->where('correo_usu', $this->correo)
+            ->first();
 
-        // $usuario = Usuario::query()
-        //     ->where('correo', $this->correo)
-        //     ->first();
+        // Si no existe el usuario mostramos un mensaje de error
+        if (!$usuario) {
+            $this->dispatch('toast', text: 'Credenciales incorrectas.', color: 'danger');
+            return;
+        }
 
-        // if (!$usuario) {
-        //     $this->dispatch('toast', text: 'Credenciales incorrectas.', color: 'danger');
-        //     return;
-        // }
+        // Si el usuario esta inactivo mostramos un mensaje de error
+        if ($usuario->activo_usu == false) {
+            $this->dispatch('toast', text: 'Usuario inactivo.', color: 'danger');
+            return;
+        }
 
-        // if (!Hash::check($this->contrasena, $usuario->password)) {
-        //     $this->dispatch('toast', text: 'Credenciales incorrectas.', color: 'danger');
-        //     return;
-        // }
+        // Si la contraseña no coincide mostramos un mensaje de error
+        if (!Hash::check($this->contrasena, $usuario->contrasena_usu)) {
+            $this->dispatch('toast', text: 'Credenciales incorrectas.', color: 'danger');
+            return;
+        }
 
-        // auth()->login($usuario);
+        // Si todo esta correcto logueamos al usuario
+        auth()->login($usuario, $this->recuerdame);
 
-        // return redirect(route('home-index'));
+        // Redireccionamos al inicio
+        return redirect(route('inicio.index'));
     }
 
+    // Metodo para cambiar el tipo de input de la contraseña
     public function changeTypeInput(): void
     {
         $this->typeInput = $this->typeInput === 'password' ? 'text' : 'password';
