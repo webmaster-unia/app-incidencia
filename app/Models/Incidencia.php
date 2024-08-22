@@ -12,6 +12,7 @@ class Incidencia extends Model
 
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
+
     protected $table = 'tbl_incidencia';
     protected $primaryKey = 'id_inc';
     protected $fillable = [
@@ -37,8 +38,9 @@ class Incidencia extends Model
         'creado_en'  => 'date_time',
         'actualizado_en'=> 'date_time'
     ];
-    //relaciones
-    
+
+    // Relaciones
+
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'id_usu');
