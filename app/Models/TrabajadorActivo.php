@@ -30,6 +30,8 @@ class TrabajadorActivo extends Model
         'actualizado_en' => 'datetime'
     ];
 
+    //Relaciones
+
     public function TrabajadorActivo(): BelongsTo
     {
         return $this->belongsTo(Trabajador::class, 'id_tra');
