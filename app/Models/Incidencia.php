@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Incidencia extends Model
 {
     use HasFactory;
+
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
 
@@ -31,11 +32,12 @@ class Incidencia extends Model
     public $timestamps = false;
 
     protected $casts = [
+        'fecha_incidencia_inc' => 'date',
+        'fecha_solucion_inc' =>'date',
         'activo_car' => 'boolean',
         'creado_en'  => 'date_time',
-        'actualizado_en'=> 'date_time',
-        'fecha_incidencia_inc' => 'date',
-        'fecha_solucion_inc' =>'date'
+        'actualizado_en'=> 'date_time'
+
 
     ];
 }
