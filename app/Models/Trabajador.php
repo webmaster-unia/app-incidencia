@@ -30,6 +30,8 @@ class Trabajador extends Model
         'actualizado_en' => 'datetime'
     ];
 
+    //Relaciones
+
     public function Trabajador(): BelongsTo
     {
         return $this->belongsTo(Trabajador::class, 'id_tra');
