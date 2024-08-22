@@ -19,7 +19,7 @@ class Trabajador extends Model
         'id_tra',
         'apellido_paterno_tra',
         'apellido_materno_tra',
-        'nombre_tra',
+        'nombres_tra',
         'activo_tra',
         'id_oca'
     ];
@@ -35,6 +35,13 @@ class Trabajador extends Model
     public function oficina_cargo(): BelongsTo
     {
         return $this->belongsTo(OficinaCargo::class, 'id_oca');
+    }
+
+    public function getNombreApellidoAttribute(): string
+    {
+        $nombre = explode(' ', $this->nombres_tra)[0];
+        $apellido = $this->apellido_paterno_tra;
+        return $nombre . ' ' . $apellido;
     }
 }
 

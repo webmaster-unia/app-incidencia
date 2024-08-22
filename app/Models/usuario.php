@@ -27,7 +27,7 @@ class Usuario extends Authenticatable
     ];
 
     protected $casts = [
-        'activo_tat' => 'boolean',
+        'activo_usu' => 'boolean',
         'creado_en' => 'datetime',
         'actualizado_en' => 'datetime'
     ];
@@ -42,5 +42,12 @@ class Usuario extends Authenticatable
     public function trabajador(): BelongsTo
     {
         return $this->belongsTo(Trabajador::class, 'id_tra');
+    }
+
+    public function getFotoUsuAttribute($value)
+    {
+        return $value
+            ? asset($value)
+            : 'https://ui-avatars.com/api/?name=' . ($this->trabajador->nombre_apellido) . '&color=f4f4f5&background=1d2630&bold=true';
     }
 }

@@ -10,6 +10,7 @@ Volt::route('/login', 'auth.login')
     ->name('login');
 
 Volt::route('/inicio', 'inicio.index')
+    ->middleware('auth')
     ->name('inicio.index');
 
 //

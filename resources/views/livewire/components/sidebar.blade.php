@@ -22,7 +22,7 @@ new class extends Component {
             </a>
         </div>
         <div class="navbar-content">
-            {{-- <livewire:components.card-perfil /> --}}
+            <livewire:components.card-perfil />
 
             <ul class="pc-navbar">
                 <!-- Inicio -->
