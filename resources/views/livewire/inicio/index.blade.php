@@ -3,10 +3,9 @@
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title};
 
-
 new
 #[Layout('components.layouts.app')]
-#[Title('Home | SIGEIN OTI')]
+#[Title('Inicio | SIGEIN OTI')]
 class extends Component {
     //
 }; ?>
