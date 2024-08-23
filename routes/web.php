@@ -13,4 +13,8 @@ Volt::route('/inicio', 'inicio.index')
     ->middleware('auth')
     ->name('inicio.index');
 
+Volt::route('/configuracion/oficinas', 'configuracion.oficina.index')
+    ->middleware('auth')
+    ->name('configuracion.oficina.index');
+
 //
