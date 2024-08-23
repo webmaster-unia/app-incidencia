@@ -87,7 +87,7 @@ new class extends Component {
                     </a>
                 </li>
                 <!-- Configuración -->
-                <li class="pc-item pc-hasmenu">
+                <li class="pc-item pc-hasmenu {{ request()->routeIs('configuracion.*') ? 'pc-trigger active' : '' }}">
                     <a class="pc-link" style="cursor: pointer;">
                         <span class="pc-micon">
                             <svg class="pc-icon">
@@ -100,16 +100,20 @@ new class extends Component {
                         <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                     </a>
                     <ul class="pc-submenu">
+                        <!-- Activos Informáticos -->
                         <li class="pc-item">
-                            <!-- Activos Informáticos -->
                             <a class="pc-link" href="">
                                 Activos Informáticos
                             </a>
-                            <!-- Oficinas -->
-                            <a class="pc-link" href="">
+                        </li>
+                        <!-- Oficinas -->
+                        <li class="pc-item {{ request()->routeIs('configuracion.oficina.*') ? 'active' : '' }}">
+                            <a class="pc-link" href="{{ route('configuracion.oficina.index') }}">
                                 Oficinas
                             </a>
-                            <!-- Complejidad Incidencia -->
+                        </li>
+                        <!-- Complejidad Incidencia -->
+                        <li class="pc-item">
                             <a class="pc-link" href="">
                                 Complejidad Incidecia
                             </a>
