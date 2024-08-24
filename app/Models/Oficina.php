@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Oficina extends Model
 {
@@ -22,4 +23,20 @@ class Oficina extends Model
     protected $casts = [
         'activo_ofi' => 'boolean'
     ];
+
+    // Relaciones
+
+    public function cargos() :BelongsToMany
+    {
+        return $this->belongsToMany(Cargo::class, 'tbl_oficina_cargo', 'id_ofi', 'id_car');
+    }
+
+    // Alcance
+
+    public function scopeSearch($query, $search)
+    {
+        if ($search) {
+            return $query->where('nombre_ofi', 'LIKE', "%$search%");
+        }
+    }
 }
