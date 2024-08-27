@@ -1,8 +1,8 @@
 <?php
 
 use Livewire\Volt\Component;
-use Livewire\Attributes\{Layout, Title, Url};
-use App\Models\{Oficina, Cargo};
+use Livewire\Attributes\{Layout, Title, Url, Validate};
+use App\Models\{Oficina, Cargo, OficinaCargo};
 use Livewire\WithPagination;
 
 new
@@ -38,9 +38,13 @@ class extends Component {
     public $id_oficina = null;
 
     // Variables para el formulario
+    #[Validate('required|string|max:255')]
     public string $nombre = '';
+    #[Validate('required|string|max:255')]
     public string $cargo = '';
     public $cargos = [];
+    #[Validate('required|array|min:1')]
+    public $cargosSeleccionados = [];
 
     // Metodo que se inicia con el componente
     public function mount(): void
@@ -53,6 +57,20 @@ class extends Component {
         ];
     }
 
+    public function reset_modal(): void
+    {
+        $this->reset(
+            'nombre',
+            'cargo',
+            'cargosSeleccionados',
+            'modo_modal',
+            'id_oficina'
+        );
+        $this->resetErrorBag();
+        $this->resetValidation();
+    }
+
+    // Metodo para cargar los datos de oficina
     public function cargar(string $modo, ?int $id): void
     {
         // $this->reset_modal();
@@ -61,7 +79,9 @@ class extends Component {
 
         if ($modo === 'crear') {
             $this->titulo_modal = 'Nuevo Registro';
-            $this->cargos = Cargo::query()->get();
+            $this->cargos = Cargo::query()
+                ->where('activo_car', true)
+                ->get();
             $this->dispatch('modal',
                 modal: '#'.$this->nombre_modal,
                 action: 'show'
@@ -76,6 +96,98 @@ class extends Component {
         } elseif ($modo === 'status') {
             //
         }
+    }
+
+    // Metodo para agregar un nuevo registro de cargo
+    public function agregar_cargo(): void
+    {
+        // Validar el campo cargo
+        $this->validate([
+            'cargo' => 'required|string|max:255'
+        ]);
+
+        // Crear el cargo
+        $cargo = new Cargo();
+        $cargo->nombre_car = $this->cargo;
+        $cargo->activo_car = true;
+        $cargo->save();
+
+        // Actualizar la lista de cargos
+        $this->cargos = Cargo::query()
+            ->where('activo_car', true)
+            ->get();
+
+        // Limpiar el campo cargo
+        $this->reset('cargo');
+    }
+
+    // Metodo para eliminar un registro de cargo
+    public function eliminar_cargo(Cargo $cargo): void
+    {
+        $oficinas_count = $cargo->oficinas()->count();
+        if ($oficinas_count > 0) {
+            // Mostrar mensaje de error
+            $this->dispatch(
+                'toast',
+                text: 'No se puede eliminar el cargo "' . $cargo->nombre_car . '" porque está asociado a una oficina.',
+                color: 'danger'
+            );
+            return;
+        } else {
+            // Eliminar el cargo
+            $cargo->delete();
+
+            // Actualizar la lista de cargos
+            $this->cargos = Cargo::query()
+                ->where('activo_car', true)
+                ->get();
+
+            // Mostrar mensaje de éxito
+            $this->dispatch(
+                'toast',
+                text: 'El cargo "' . $cargo->nombre_car . '" ha sido eliminado correctamente.',
+                color: 'success'
+            );
+        }
+    }
+
+    public function guardar(): void
+    {
+        // Validar los campos
+        $this->validate([
+            'nombre' => 'required|string|max:255',
+            'cargosSeleccionados' => 'required|array|min:1'
+        ]);
+
+        // Creamos la oficina
+        $oficina = new Oficina();
+        $oficina->nombre_ofi = $this->nombre;
+        $oficina->activo_ofi = true;
+        $oficina->save();
+
+        // Asignar los cargos a la oficina creada
+        foreach ($this->cargosSeleccionados as $id_car) {
+            $oficina_cargo = new OficinaCargo();
+            $oficina_cargo->id_ofi = $oficina->id_ofi;
+            $oficina_cargo->id_car = $id_car;
+            $oficina_cargo->save();
+        }
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'La oficina "' . $this->nombre . '" ha sido creada correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#'.$this->nombre_modal,
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
     }
 
     // Metodo que renderiza la vista
@@ -272,7 +384,7 @@ class extends Component {
     </div>
     <!-- Modal -->
     <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <form class="modal-content" wire:submit="guardar">
                 <div class="modal-header animate__animated animate__fadeIn animate__faster">
                     <h5 class="modal-title">
@@ -318,47 +430,68 @@ class extends Component {
                                         <button
                                             class="btn btn-light-primary d-flex align-items-center"
                                             type="button"
+                                            wire:click="agregar_cargo"
                                         >
                                             <i class="ti ti-plus fs-4"></i>
                                         </button>
                                     </div>
                                 </div>
-                                {{-- <div class="col-md-8">
-                                    <input type="text"
-                                        class="form-control @if ($errors->has('cargo')) is-invalid @elseif($cargo) is-valid @endif"
-                                        wire:model.live="cargo" id="cargo"
-                                        placeholder="Ingrese el cargo de la oficina">
-                                </div>
-                                <div class="col-md-4">
-                                    <button type="button"
-                                        class="btn btn-icon btn-light-primary @if (!$cargo) disabled @endif"
-                                        wire:click="agregar_cargo">
-                                        <i class="ti ti-plus"></i>
-                                    </button>
-                                </div> --}}
                             </div>
-                            <small class="form-text text-muted">
-                                Ingrese el cargo de la oficina.
-                            </small>
                         </div>
                         <div class="col-md-12">
-                            <div class="row gy-1 gx-3">
-                                {{-- @foreach ($cargos as $key => $accion)
-                                    <div class="col-md-4" wire:key="{{ $key }}">
-                                        <div class="form-check mb-2">
-                                            <input
-                                                class="form-check-input input-light-primary @if ($errors->has('acciones_seleccionadas')) is-invalid @endif"
-                                                type="checkbox" id="{{ $accion['nombre'] }}"
-                                                wire:model.live="acciones_seleccionadas"
-                                                value="{{ $accion['nombre'] }}"
-                                                @if ($accion['seleccionado']) checked @endif>
-                                            <label class="form-check-label" for="{{ $accion['nombre'] }}">
-                                                {{ $accion['descripcion'] }}
-                                            </label>
+                            <div class="row g-1">
+                                @foreach ($cargos as $cargo)
+                                    <div class="col-6 col-lg-4">
+                                        <div
+                                            class="card mb-1"
+                                        >
+                                            <div
+                                                class="py-1 px-2 d-flex justify-content-between align-items-center gap-2"
+                                            >
+                                                <div>
+                                                    <input
+                                                        class="form-check-input me-1 @if ($errors->has('cargosSeleccionados')) is-invalid @endif"
+                                                        type="checkbox"
+                                                        wire:model.live="cargosSeleccionados"
+                                                        id="cargo-{{ $cargo->id_car }}"
+                                                        value="{{ $cargo->id_car }}"
+                                                    >
+                                                    <label
+                                                        for="cargo-{{ $cargo->id_car }}"
+                                                        class="@if ($errors->has('cargosSeleccionados')) text-danger @endif"
+                                                    >
+                                                        {{ $cargo->nombre_car }}
+                                                    </label>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-icon btn-link-danger"
+                                                    wire:click="eliminar_cargo({{ $cargo->id_car }})"
+                                                >
+                                                    <i class="ti ti-square-x fs-4 text-danger"></i>
+                                                </button>
+
+                                            </div>
                                         </div>
                                     </div>
-                                @endforeach --}}
+                                @endforeach
                             </div>
+                            {{-- <div class="list-group">
+                                @foreach ($cargos as $cargo)
+                                    <label
+                                        class="list-group-item"
+                                        wire:key="cargo-{{ $cargo->id_car }}"
+                                    >
+                                        <input
+                                            class="form-check-input me-1"
+                                            type="checkbox"
+                                            wire:model.live="cargosSeleccionados"
+                                            value="{{ $cargo->id_car }}"
+                                        >
+                                        {{ $cargo->nombre_car }}
+                                    </label>
+                                @endforeach
+                            </div> --}}
                         </div>
                     </div>
                 </div>
