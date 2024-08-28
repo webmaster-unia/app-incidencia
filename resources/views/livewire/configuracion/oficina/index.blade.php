@@ -58,6 +58,16 @@ class extends Component {
         ];
     }
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedRegistros(): void
+    {
+        $this->resetPage();
+    }
+
     public function reset_modal(): void
     {
         $this->reset(
