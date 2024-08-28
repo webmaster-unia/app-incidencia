@@ -36,6 +36,7 @@ class extends Component {
     // Variables para el formulario
     public string $modo_modal = 'crear';
     public $id_oficina = null;
+    public string $action_form = 'crear_oficina';
 
     // Variables para el formulario
     #[Validate('required|string|max:255')]
@@ -64,7 +65,13 @@ class extends Component {
             'cargo',
             'cargosSeleccionados',
             'modo_modal',
-            'id_oficina'
+            'id_oficina',
+            'action_form',
+            'titulo_modal',
+            'cargos',
+            'alerta',
+            'mensaje',
+            'action'
         );
         $this->resetErrorBag();
         $this->resetValidation();
@@ -73,28 +80,77 @@ class extends Component {
     // Metodo para cargar los datos de oficina
     public function cargar(string $modo, ?int $id): void
     {
-        // $this->reset_modal();
+        $this->reset_modal();
         $this->modo_modal = $modo;
         $this->id_oficina = $id;
 
         if ($modo === 'crear') {
+            // Asignar los valores a las variables
             $this->titulo_modal = 'Nuevo Registro';
+            $this->action_form = 'crear_oficina';
             $this->cargos = Cargo::query()
                 ->where('activo_car', true)
                 ->get();
+
+            // Abrir el modal
             $this->dispatch('modal',
                 modal: '#'.$this->nombre_modal,
                 action: 'show'
             );
-        } elseif ($modo === 'edit') {
-            //
-        } elseif ($modo === 'delete') {
-            // $this->titulo_modal = '';
-            // $this->alerta = '¡Atención!';
-            // $this->mensaje = '¿Está seguro de eliminar el registro?';
-            // $this->action = 'eliminar';
+        } elseif ($modo === 'editar') {
+            // Buscar la oficina
+            $data = Oficina::query()
+                ->with('cargos')
+                ->findOrFail($id);
+
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Editar Registro';
+            $this->action_form = 'editar_oficina';
+            $this->nombre = $data->nombre_ofi;
+            $this->cargos = Cargo::query()
+                ->where('activo_car', true)
+                ->get();
+            $this->cargosSeleccionados = $data->cargos->pluck('id_car')->toArray();
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#'.$this->nombre_modal,
+                action: 'show'
+            );
+        } elseif ($modo === 'eliminar') {
+            // Buscar la oficina
+            $data = Oficina::query()
+                ->with('cargos')
+                ->findOrFail($id);
+
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = '¿Está seguro de eliminar la oficina "' . $data->nombre_ofi . '"?';
+            $this->action = 'eliminar_oficina';
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'show'
+            );
         } elseif ($modo === 'status') {
-            //
+            // Buscar la oficina
+            $data = Oficina::query()
+                ->with('cargos')
+                ->findOrFail($id);
+
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = $data->activo_ofi
+                ? '¿Está seguro de desactivar la oficina "' . $data->nombre_ofi . '"?'
+                : '¿Está seguro de activar la oficina "' . $data->nombre_ofi . '"?';
+            $this->action = 'cambiar_estado_oficina';
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'show'
+            );
         }
     }
 
@@ -151,7 +207,8 @@ class extends Component {
         }
     }
 
-    public function guardar(): void
+    // Metodo para crear una nueva oficina
+    public function crear_oficina(): void
     {
         // Validar los campos
         $this->validate([
@@ -183,6 +240,153 @@ class extends Component {
         // Cerrar el modal
         $this->dispatch('modal',
             modal: '#'.$this->nombre_modal,
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para editar una oficina
+    public function editar_oficina(): void
+    {
+        // Validar los campos
+        $this->validate([
+            'nombre' => 'required|string|max:255',
+            'cargosSeleccionados' => 'required|array|min:1'
+        ]);
+
+        //  Editamos la oficina
+        $oficina = Oficina::query()
+            ->findOrFail($this->id_oficina);
+        $oficina->nombre_ofi = $this->nombre;
+        $oficina->save();
+
+        // Reasignar los cargos a la oficina editada del modelo oficina_cargo
+        $cargos = OficinaCargo::query()
+            ->where('id_ofi', $this->id_oficina)
+            ->get();
+        // Comparar los cargos seleccionados con los cargos actuales
+        $cargos = $cargos->pluck('id_car')->toArray();
+        // Si hay mas cargos seleccionados que los actuales, se crean los nuevos
+        $nuevos_cargos = array_diff($this->cargosSeleccionados, $cargos);
+        if (count($nuevos_cargos) > 0) {
+            foreach ($nuevos_cargos as $id_car) {
+                $oficina_cargo = new OficinaCargo();
+                $oficina_cargo->id_ofi = $this->id_oficina;
+                $oficina_cargo->id_car = $id_car;
+                $oficina_cargo->save();
+            }
+        }
+        // Si hay menos cargos seleccionados que los actuales, se eliminan los actuales
+        $cargos_eliminar = array_diff($cargos, $this->cargosSeleccionados);
+        if (count($cargos_eliminar) > 0) {
+            foreach ($cargos_eliminar as $id_car) {
+                $oficina_cargo = OficinaCargo::query()
+                    ->where('id_ofi', $this->id_oficina)
+                    ->where('id_car', $id_car)
+                    ->first();
+                // Verificamos si el cargo está asociado a un trabajador
+                $trabajadores_count = $oficina_cargo->trabajadores()->count();
+                if ($trabajadores_count > 0) {
+                    // Mostrar mensaje de error
+                    $this->dispatch(
+                        'toast',
+                        text: 'No se puede eliminar el cargo "' . $oficina_cargo->cargo->nombre_car . '" porque está asociado a un trabajador.',
+                        color: 'danger'
+                    );
+                    return;
+                } else {
+                    $oficina_cargo->delete();
+                }
+            }
+        }
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'La oficina "' . $this->nombre . '" ha sido actualizado correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#'.$this->nombre_modal,
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para cambiar el estado de la oficina
+    public function cambiar_estado_oficina(): void
+    {
+        // Buscar la oficina
+        $oficina = Oficina::query()
+            ->findOrFail($this->id_oficina);
+
+        // Cambiar el estado de la oficina
+        $oficina->activo_ofi = !$oficina->activo_ofi;
+        $oficina->save();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'La oficina "' . $oficina->nombre_ofi . '" ha sido ' . ($oficina->activo_ofi ? 'activado' : 'desactivado') . ' correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#alerta',
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para eliminar una oficina
+    public function eliminar_oficina(): void
+    {
+        // Buscar la oficina
+        $oficina = Oficina::query()
+            ->findOrFail($this->id_oficina);
+
+        // Verificar si la oficina tiene trabajadores
+        $oficina_cargo = OficinaCargo::query()
+            ->where('id_ofi', $this->id_oficina)
+            ->get();
+        foreach ($oficina_cargo as $item) {
+            // Verificar si el cargo está asociado a un trabajador
+            $trabajadores_count = $item->trabajadores()->count();
+            if ($trabajadores_count > 0) {
+                // Mostrar mensaje de error
+                $this->dispatch(
+                    'toast',
+                    text: 'No se puede eliminar la oficina "' . $oficina->nombre_ofi . '" porque el cargo "' . $item->cargo->nombre_car . '" está asociado a un trabajador.',
+                    color: 'danger'
+                );
+                return;
+            } else {
+                $item->delete();
+            }
+        }
+
+        // Eliminar la oficina
+        $oficina->delete();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'La oficina "' . $oficina->nombre_ofi . '" ha sido eliminado correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#alerta',
             action: 'hide'
         );
 
@@ -279,7 +483,7 @@ class extends Component {
                                                     {{ $item->nombre_ofi }}
                                                 </td>
                                                 <td>
-                                                    @forelse ($item->cargos()->limit(3)->get() as $cargo)
+                                                    @forelse ($item->cargos as $cargo)
                                                     <span class="badge text-bg-light text-dark rounded f-12">
                                                         {{ $cargo->nombre_car }}
                                                     </span>
@@ -293,6 +497,8 @@ class extends Component {
                                                     @if ($item->activo_ofi)
                                                         <span
                                                             class="badge bg-light-success rounded f-12"
+                                                            wire:click="cargar('status', {{ $item->id_ofi }})"
+                                                            style="cursor: pointer;"
                                                         >
                                                             <i class="ti ti-circle-check me-1"></i>
                                                             Activo
@@ -300,6 +506,8 @@ class extends Component {
                                                     @else
                                                         <span
                                                             class="badge bg-light-danger rounded f-12"
+                                                            wire:click="cargar('status', {{ $item->id_ofi }})"
+                                                            style="cursor: pointer;"
                                                         >
                                                             <i class="ti ti-circle-x me-1"></i>
                                                             Inactivo
@@ -313,6 +521,7 @@ class extends Component {
                                                             data-bs-toggle="tooltip"
                                                             aria-label="Editar"
                                                             data-bs-original-title="Editar"
+                                                            wire:click="cargar('editar', {{ $item->id_ofi }})"
                                                         >
                                                             <a
                                                                 href="#"
@@ -326,6 +535,7 @@ class extends Component {
                                                             data-bs-toggle="tooltip"
                                                             aria-label="Eliminar"
                                                             data-bs-original-title="Eliminar"
+                                                            wire:click="cargar('eliminar', {{ $item->id_ofi }})"
                                                         >
                                                             <a
                                                                 href="#"
@@ -385,7 +595,7 @@ class extends Component {
     <!-- Modal -->
     <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <form class="modal-content" wire:submit="guardar">
+            <form class="modal-content" wire:submit="{{ $action_form }}">
                 <div class="modal-header animate__animated animate__fadeIn animate__faster">
                     <h5 class="modal-title">
                         {{ $titulo_modal }}
@@ -467,6 +677,7 @@ class extends Component {
                                                     type="button"
                                                     class="btn btn-icon btn-link-danger"
                                                     wire:click="eliminar_cargo({{ $cargo->id_car }})"
+                                                    wire:confirm="¿Está seguro de eliminar el cargo?"
                                                 >
                                                     <i class="ti ti-square-x fs-4 text-danger"></i>
                                                 </button>
@@ -512,6 +723,51 @@ class extends Component {
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+    <!-- Alerta -->
+    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body py-5 px-5">
+                    <div class="row">
+                        @if ($alerta != '' && $mensaje != '' && $action != '')
+                            <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                                <div class="d-flex flex-column text-center">
+                                    <h4 class="text-center">
+                                        {{ $alerta }}
+                                    </h4>
+                                    <h5 class="text-center fw-medium">
+                                        {{ $mensaje }}
+                                    </h5>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-light-danger w-100"
+                                                wire:click="reset_modal" data-bs-dismiss="modal">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-primary w-100"
+                                                wire:click="{{ $action }}">
+                                                Aceptar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="col-md-12">
+                                <div class="d-flex justify-content-center py-3">
+                                    <div class="spinner-border text-secondary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
