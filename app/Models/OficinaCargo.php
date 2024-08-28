@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OficinaCargo extends Model
 {
@@ -19,16 +20,21 @@ class OficinaCargo extends Model
     ];
 
     public $timestamps = false;
-    
+
     // Relaciones
 
     public function oficina(): BelongsTo
     {
         return $this->belongsTo(Oficina::class, 'id_ofi');
     }
-    
+
     public function cargo(): BelongsTo
     {
         return $this->belongsTo(Cargo::class, 'id_car');
+    }
+
+    public function trabajadores(): HasMany
+    {
+        return $this->hasMany(Trabajador::class, 'id_oca');
     }
 }
