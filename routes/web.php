@@ -17,4 +17,7 @@ Volt::route('/configuracion/oficinas', 'configuracion.oficina.index')
     ->middleware('auth')
     ->name('configuracion.oficina.index');
 
+Volt::route('/seguridad/permisos', 'seguridad.permiso.index')
+    ->middleware('auth')
+    ->name('seguridad.permiso.index');
 //
