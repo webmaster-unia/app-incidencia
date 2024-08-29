@@ -58,6 +58,18 @@ class extends Component {
         ];
     }
 
+    // Metodo para actualizar la busqueda
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    // Metodo para actualizar la cantidad de registros
+    public function updatedRegistros(): void
+    {
+        $this->resetPage();
+    }
+
     public function reset_modal(): void
     {
         $this->reset(
