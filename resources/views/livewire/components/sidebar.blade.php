@@ -59,8 +59,10 @@ new class extends Component {
                             <a class="pc-link" href="">Roles</a>
                         </li>
                         <!-- Permisos -->
-                        <li class="pc-item">
-                            <a class="pc-link" href="">Permisos</a>
+                        <li class="pc-item {{ request()->routeIs('seguridad.permiso.*') ? 'active' : '' }}">
+                            <a class="pc-link" href="{{ route('seguridad.permiso.index') }}">
+                                Permisos
+                            </a>
                         </li>
                     </ul>
                 </li>
