@@ -2,7 +2,7 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
-use App\Models\{Permiso, accion};
+use App\Models\{Permiso, accion, RolPermiso};
 use Livewire\WithPagination;
 
 new
@@ -151,22 +151,37 @@ public function agregar_permiso(): void
 }
 
 // Metodo para eliminar un registro de permiso
-public function eliminar_permiso(Permiso $permiso): void
+public function eliminar_permiso(): void
 {
-    // Eliminar el permiso
-    $permiso->delete();
+    // Buscar el permiso
+    $permiso = Permiso::query()
+        ->findOrFail($this->id_permiso);
 
-    // Actualizar la lista de permisos
-    $this->permisos = Permiso::query()
-        ->where('activo_per', true)
-        ->get();
+    $acciones_count = $permiso->acciones()->count(); 
+    if ($acciones_count > 0) {
+        // Mostrar mensaje de error
+        $this->dispatch(
+            'toast',
+            text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque está asociado a una acción.',
+            color: 'danger'
+        );
+        return;
+    } else {
+        // Eliminar el permiso
+        $permiso->delete();
 
-    // Mostrar mensaje de éxito
-    $this->dispatch(
-        'toast',
-        text: 'El permiso "' . $permiso->nombre_per. '" ha sido eliminado correctamente.',
-        color: 'success'
-    );
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'El permiso "' . $permiso->nombre_per . '" ha sido eliminado correctamente.',
+            color: 'success'
+        );
+    // Abrir el modal
+    $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'hide'
+            );
+    }
 }
 
 // Metodo para crear un nuevo permiso
@@ -211,13 +226,13 @@ public function editar_permiso(): void
     // Editamos el permiso
     $permiso = Permiso::query()
         ->findOrFail($this->id_permiso);
-    $permiso->nombre_per = $this->nombre_per;
+    $permiso->nombre_per = $this->nombre;
     $permiso->save();
 
     // Mostrar mensaje de éxito
     $this->dispatch(
         'toast',
-        text: 'El permiso "' . $this->nombre_per. '" ha sido actualizado correctamente.',
+        text: 'El permiso "' . $this->nombre. '" ha sido actualizado correctamente.',
         color: 'success'
     );
 
