@@ -113,9 +113,9 @@ new class extends Component {
                             </a>
                         </li>
                         <!-- Complejidad Incidencia -->
-                        <li class="pc-item">
-                            <a class="pc-link" href="">
-                                Complejidad Incidecia
+                        <li class="pc-item {{ request()->routeIs('configuracion.complejidad-incidencia.*') ? 'active' : '' }}">
+                            <a class="pc-link" href="{{ route('configuracion.complejidad-incidencia.index') }}">
+                                Compleidad Incidencia
                             </a>
                         </li>
                     </ul>
