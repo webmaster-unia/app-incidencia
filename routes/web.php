@@ -17,4 +17,8 @@ Volt::route('/configuracion/oficinas', 'configuracion.oficina.index')
     ->middleware('auth')
     ->name('configuracion.oficina.index');
 
+Volt::route('/configuracion/complejidad-incidencia', 'configuracion.complejidad-incidencia.index')
+    ->middleware('auth')
+    ->name('configuracion.complejidad-incidencia.index');
+
 //
