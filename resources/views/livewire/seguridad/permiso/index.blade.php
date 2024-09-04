@@ -7,7 +7,7 @@ use Livewire\WithPagination;
 
 new
 #[Layout('components.layouts.app')]
-#[Title('permisos | SIGEIN OTI')]
+#[Title('Permisos | SIGEIN OTI')]
 class extends Component {
    // Define la variables para el Page Header
    public string $titulo_componente = 'Permisos';
