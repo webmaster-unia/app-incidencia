@@ -21,4 +21,7 @@ Volt::route('/configuracion/complejidad-incidencia', 'configuracion.complejidad-
     ->middleware('auth')
     ->name('configuracion.complejidad-incidencia.index');
 
+Volt::route('/seguridad/permisos', 'seguridad.permiso.index')
+    ->middleware('auth')
+    ->name('seguridad.permiso.index');
 //

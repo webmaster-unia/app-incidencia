@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 
 class Permiso extends Model
@@ -24,4 +25,9 @@ class Permiso extends Model
     protected $casts = [
         'activo_per' => 'boolean'
     ];
+    # Relaciones
+    public function acciones(): HasMany
+    {
+        return $this->hasMany(Accion::class, 'id_acc');
+    }
 }
