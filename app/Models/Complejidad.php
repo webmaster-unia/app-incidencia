@@ -23,6 +23,13 @@ class Complejidad extends Model
     protected $casts = [
         'activo_com' => 'boolean'
     ];
+
+    // Alcance
+
+    public function scopeSearch($query, $search)
+    {
+        if ($search) {
+            return $query->where('nombre_com', 'LIKE', "%$search%");
+        }
+    }
 }
-
-
