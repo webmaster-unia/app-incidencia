@@ -13,6 +13,14 @@ Volt::route('/inicio', 'inicio.index')
     ->middleware('auth')
     ->name('inicio.index');
 
+Volt::route('/seguridad/usuarios', 'seguridad.usuario.index')
+    ->middleware('auth')
+    ->name('seguridad.usuario.index');
+    
+Volt::route('/seguridad/roles', 'seguridad.rol.index')
+    ->middleware('auth')
+    ->name('seguridad.rol.index');
+    
 Volt::route('/configuracion/oficinas', 'configuracion.oficina.index')
     ->middleware('auth')
     ->name('configuracion.oficina.index');
@@ -24,4 +32,5 @@ Volt::route('/configuracion/complejidad-incidencia', 'configuracion.complejidad-
 Volt::route('/seguridad/permisos', 'seguridad.permiso.index')
     ->middleware('auth')
     ->name('seguridad.permiso.index');
+    
 //
