@@ -123,9 +123,9 @@ class extends Component {
                 action: 'show'
             );
         }
-        
 
-        
+
+
     }
     // Metodo para agregar un nuevo registro de permiso
 public function agregar_permiso(): void
@@ -157,7 +157,7 @@ public function eliminar_permiso(): void
     $permiso = Permiso::query()
         ->findOrFail($this->id_permiso);
 
-    $acciones_count = $permiso->acciones()->count(); 
+    $acciones_count = $permiso->acciones()->count();
     if ($acciones_count > 0) {
         // Mostrar mensaje de error
         $this->dispatch(
@@ -381,6 +381,15 @@ public function cambiar_estado_permiso(): void
                                                         <a href="#"
                                                             class="avtar avtar-xs btn-link-danger btn-pc-default">
                                                             <i class="ti ti-trash f-18"></i>
+                                                        </a>
+                                                    </li>
+                                                    <li class="list-inline-item align-bottom" data-bs-toggle="tooltip"
+                                                        aria-label="Ver" data-bs-original-title="Ver"
+                                                        wire:click="cargar('Ver', {{ $item->id_per }})">
+                                                        <a href="#"
+                                                            class="avtar avtar-xs btn-link-secondary btn-pc-default">
+                                                            <i class="ti ti-eye f-18"></i>
+                                                        </a>
                                                         </a>
                                                     </li>
                                                 </ul>
