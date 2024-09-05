@@ -51,12 +51,16 @@ new class extends Component {
                     </a>
                     <ul class="pc-submenu">
                         <!-- Usuarios -->
-                        <li class="pc-item">
-                            <a class="pc-link" href="">Usuarios</a>
+                        <li class="pc-item {{ 'seguridad.usuario.*' ? 'active' : '' }}">
+                            <a class="pc-link" href="{{ route('seguridad.usuario.index') }}">
+                                Usuarios
+                            </a>
                         </li>
                         <!-- Roles -->
-                        <li class="pc-item">
-                            <a class="pc-link" href="">Roles</a>
+                        <li class="pc-item {{ request()->routeIs('seguridad.rol.*') ? 'active' : '' }}">
+                            <a class="pc-link" href="{{ route('seguridad.rol.index') }}">
+                                Roles
+                            </a>
                         </li>
                         <!-- Permisos -->
                         <li class="pc-item {{ request()->routeIs('seguridad.permiso.*') ? 'active' : '' }}">
@@ -117,7 +121,7 @@ new class extends Component {
                         <!-- Complejidad Incidencia -->
                         <li class="pc-item {{ request()->routeIs('configuracion.complejidad-incidencia.*') ? 'active' : '' }}">
                             <a class="pc-link" href="{{ route('configuracion.complejidad-incidencia.index') }}">
-                                Compleidad Incidencia
+                                Complejidad Incidencia
                             </a>
                         </li>
                     </ul>
