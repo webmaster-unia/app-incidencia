@@ -47,10 +47,11 @@ class extends Component {
     {
         $this->titulo_componente = 'Permisos';
         $this->acciones = [
-            ['id_acc' => 1, 'nombre_acc' => 'Index'],
-            ['id_acc' => 2, 'nombre_acc' => 'Editar'],
-            ['id_acc' => 3, 'nombre_acc' => 'Eliminar'],
-            ['id_acc' => 4, 'nombre_acc' => 'Cambia Estado'],
+            ['id_acc' => 1, 'nombre_acc' => 'Index', 'slug_acc' => 'index'],
+            ['id_acc' => 2, 'nombre_acc' => 'Crear', 'slug_acc' => 'create'],
+            ['id_acc' => 2, 'nombre_acc' => 'Editar', 'slug_acc' => 'edit'],
+            ['id_acc' => 3, 'nombre_acc' => 'Eliminar', 'slug_acc' => 'delete'],
+            ['id_acc' => 4, 'nombre_acc' => 'Cambia Estado', 'slug_acc' => 'status']
         ];
         $this->breadcrumbs = [
             ['url' => route('inicio.index'), 'title' => 'Inicio'],
@@ -93,13 +94,12 @@ class extends Component {
             // Buscar permiso
             $data = Permiso::query()
                 ->findOrFail($id);
-
+           
             // Asignar los valores a las variables
             $this->titulo_modal = 'Editar Registro';
             $this->action_form = 'editar_permiso';
             $this->nombre = $data->nombre_per;
-            $this->accionesSeleccionadas = $data->acciones->pluck('id_acc')->toArray();
-
+            $this->accionesSeleccionadas = $data->acciones()->pluck('id_acc')->toArray();
             // Abrir el modal
             $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
         } elseif ($modo == 'eliminar') {
@@ -134,13 +134,31 @@ class extends Component {
     // Metodo para agregar una nueva accion
     public function agregar_accion(): void
     {
-        // Validar el campo accion
-        $this->validate([
-            'accion' => 'required|string|max:255'
+        // Validar el campo
+        $this->acciones = array_merge($this->acciones, [
+            [
+                'id_acc' => count($this->acciones) + 1,
+                'nombre_acc' => $this->accion_permiso
+            ]
         ]);
-        // Limpiar el campo accion
-        $this->reset('accion');
+        // Limpiar el campo
+        $this->accion_permiso = '';
+
+        // Mostrar mensaje de éxito
+        $this->dispatch('toast', text: 'La acción ha sido agregada correctamente.', color: 'success');
     }
+    // Metodo para eliminar una accion
+    public function eliminar_accion(int $id_acc): void
+    {
+        // Buscar la accion
+        $this->acciones = array_filter($this->acciones, function ($accion) use ($id_acc) {
+            return $accion['id_acc'] != $id_acc;
+        });
+
+        // Mostrar mensaje de éxito
+        $this->dispatch('toast', text: 'La acción ha sido eliminada correctamente.', color: 'success');
+    }
+
 
     // Metodo para eliminar un registro de permiso
     public function eliminar_permiso(): void
@@ -149,22 +167,34 @@ class extends Component {
         $permiso = Permiso::query()
             ->findOrFail($this->id_permiso);
 
-        $acciones_count = $permiso->acciones()->count(); 
+        // Verificar si la Acciones tiene permiso
+        $permiso_accion = Accion::query()
+        ->where('id_per', $this->id_permiso)
+        ->get();
+
+        foreach ($permiso_accion as $item) {
+        // Verificar si el cargo está asociado a un permiso
+        $acciones_count = $item->permiso()->count();
         if ($acciones_count > 0) {
-            // Mostrar mensaje de error
-            $this->dispatch('toast', text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque está asociado a una acción.', color: 'danger');
-            return;
+        // Mostrar mensaje de error
+        $this->dispatch(
+            'toast',
+            text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque el cargo "' . $item->slug_acc . '" está asociado a una accion.',
+            color: 'danger'
+        );
+        return;
         } else {
+        $item->delete();
+        }
+    }
             // Eliminar el permiso
             $permiso->delete();
 
-            // Mostrar mensaje de éxito
-            $this->dispatch('toast', text: 'El permiso "' . $permiso->nombre_per . '" ha sido eliminado correctamente.', color: 'success');
-
             // Cerrar el modal
             $this->dispatch('modal', modal: '#alerta', action: 'hide');
-        }
+        
     }
+    
 
     // Metodo para crear un nuevo permiso
     public function crear_permiso(): void
@@ -180,6 +210,16 @@ class extends Component {
         $permiso->nombre_per = $this->nombre;
         $permiso->activo_per = true;
         $permiso->save();
+        
+        //Asignar las acciones al permiso
+        foreach ($this->accionesSeleccionadas as $slug_acc) {
+            $permiso_accion = new Accion();
+            $permiso_accion->nombre_acc = $slug_acc;
+            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per.'-'.$slug_acc);
+            $permiso_accion->activo_acc = true;
+            $permiso_accion->id_per = $permiso->id_per;
+            $permiso_accion->save();
+        }
 
         // Mostrar mensaje de éxito
         $this->dispatch('toast', text: 'El permiso "' . $this->nombre. '" ha sido creado correctamente.', color: 'success');
@@ -204,9 +244,50 @@ class extends Component {
             ->findOrFail($this->id_permiso);
         $permiso->nombre_per = $this->nombre;
         $permiso->save();
+        // Reasignar las acciones al permiso
+        $acciones = Accion::query()
+            ->where('id_acc', $this->id_permiso)
+            ->get();
+        // Comparar las acciones actuales con las seleccionadas
+        $acciones = $acciones->pluck('id_acc')->toArray();
 
-        // Reasignar las acciones al permiso editado
-        $permiso->acciones()->sync($this->accionesSeleccionadas);
+        // Si hay más acciones seleccionadas que las actuales, se crean las nuevas
+        $nuevas_acciones = array_diff($this->accionesSeleccionados, $acciones);
+
+        if (!empty($nuevas_acciones)) {
+            foreach ($nuevas_acciones as $id_acc) {
+                $permiso_accion = new Acciones();
+                $permiso_accion->nombre_acc = $slug_acc;
+                $permiso_accion->slug_acc = $slug_acc;
+                $permiso_accion->activo_acc = true;
+                $permiso_accion->id_per = $permiso->id_per;
+                $permiso_accion->save();
+            }
+        }
+        // Si hay menos acciones seleccionadas que las actuales, se eliminan las actuales
+        $acciones_eliminar = array_diff($acciones, $this->accionesSeleccionados);
+        if (count($acciones_eliminar) > 0) {
+            foreach ($acciones_eliminar as $id_acc) {
+                $permiso_accion = Accion::query()
+                    ->where('id_per', $this->id_permiso)
+                    ->where('id_acc', $id_acc)
+                    ->first();
+                // Verificamos si el cargo está asociado a un trabajador
+                $acciones_count = $permiso_accion->permiso()->count();
+                if ($acciones_count > 0) {
+                    // Mostrar mensaje de error
+                    $this->dispatch(
+                    'toast',
+                    text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque el cargo "' . $item->slug_acc . '" está asociado a una accion.',
+                    color: 'danger'
+                );
+                    return;
+                } else {
+                    $permiso_accion->delete();
+                }
+            }
+        }
+
 
         // Mostrar mensaje de éxito
         $this->dispatch('toast', text: 'El permiso "' . $this->nombre. '" ha sido actualizado correctamente.', color: 'success');
@@ -338,18 +419,15 @@ class extends Component {
                                                 @endif
                                             </td>
                                             <td>
-                                                <ul class="list-inline me-auto mb-0">
-                                                    @foreach ($item->acciones as $accion) 
-                                                    <li class="list-inline-item align-bottom" data-bs-toggle="tooltip"
-                                                        aria-label="{{ $accion->nombre_acc }}"
-                                                        data-bs-original-title="{{ $accion->nombre_acc }}">
-                                                        <a href="#"
-                                                            class="avtar avtar-xs btn-link-secondary btn-pc-default">
-                                                            <i class="ti ti-check f-18"></i>
-                                                        </a>
-                                                    </li>
-                                                    @endforeach
-                                                </ul>
+                                                @forelse ($item->acciones as $nombre_acc)
+                                                <span class="badge text-bg-light text-dark rounded f-12">
+                                                    {{ $nombre_acc->slug_acc }}
+                                                </span>
+                                                @empty
+                                                <span class="badge text-bg-light text-dark rounded f-12">
+                                                    Sin Acciones
+                                                </span>
+                                                @endforelse
                                             </td>
                                             <td class="text-center">
                                                 <ul class="list-inline me-auto mb-0">
@@ -474,7 +552,7 @@ class extends Component {
                                                 <input
                                                     class="form-check-input me-1 @if ($errors->has('accionesSeleccionadas')) is-invalid @endif"
                                                     type="checkbox" wire:model.live="accionesSeleccionadas"
-                                                    id="accion-{{ $item['id_acc'] }}" value="{{ $item['id_acc'] }}">
+                                                    id="accion-{{ $item['id_acc'] }}" value="{{ $item['slug_acc'] }}">
                                                 <label for="accion-{{ $item['id_acc'] }}"
                                                     class="@if ($errors->has('accionesSeleccionadas')) text-danger @endif">
                                                     {{ $item['nombre_acc'] }}
@@ -483,7 +561,7 @@ class extends Component {
                                             <button type="button" class="btn btn-icon btn-link-danger"
                                                 wire:click="eliminar_accion({{ $item['id_acc'] }})"
                                                 wire:confirm="¿Está seguro de eliminar la acción?">
-                                                <i class="ti ti-square-x fs-4 text-danger"></i>
+                                                <i class="ti ti-circle-x fs-4 text-danger"></i>
                                             </button>
                                         </div>
                                     </div>
