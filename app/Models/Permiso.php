@@ -28,6 +28,6 @@ class Permiso extends Model
     # Relaciones
     public function acciones(): HasMany
     {
-        return $this->hasMany(Accion::class, 'id_acc');
+        return $this->hasMany(Accion::class, 'id_per');
     }
 }

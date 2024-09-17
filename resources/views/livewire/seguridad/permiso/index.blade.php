@@ -99,7 +99,7 @@ class extends Component {
             $this->titulo_modal = 'Editar Registro';
             $this->action_form = 'editar_permiso';
             $this->nombre = $data->nombre_per;
-            $this->accionesSeleccionadas = $data->acciones()->pluck('id_acc')->toArray();
+            $this->accionesSeleccionadas = $data->acciones()->pluck('nombre_acc')->toArray();
             // Abrir el modal
             $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
         } elseif ($modo == 'eliminar') {
@@ -138,7 +138,8 @@ class extends Component {
         $this->acciones = array_merge($this->acciones, [
             [
                 'id_acc' => count($this->acciones) + 1,
-                'nombre_acc' => $this->accion_permiso
+                'nombre_acc' => $this->accion_permiso,
+                'slug_acc' => Str::slug($this->accion_permiso)
             ]
         ]);
         // Limpiar el campo
@@ -165,35 +166,55 @@ class extends Component {
     {
         // Buscar el permiso
         $permiso = Permiso::query()
+            ->with('acciones')
             ->findOrFail($this->id_permiso);
-
-        // Verificar si la Acciones tiene permiso
-        $permiso_accion = Accion::query()
-        ->where('id_per', $this->id_permiso)
-        ->get();
-
-        foreach ($permiso_accion as $item) {
-        // Verificar si el cargo está asociado a un permiso
-        $acciones_count = $item->permiso()->count();
-        if ($acciones_count > 0) {
-        // Mostrar mensaje de error
-        $this->dispatch(
-            'toast',
-            text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque el cargo "' . $item->slug_acc . '" está asociado a una accion.',
-            color: 'danger'
-        );
-        return;
-        } else {
-        $item->delete();
+        // Verificar si el permiso tiene acciones
+        $tiene_acciones = $permiso->acciones()->count() > 0 ? true : false;
+        if ($tiene_acciones) {
+            //Verificar si las acciones tienen un rol asociado
+            foreach ($permiso->acciones()->with('roles')->get() as $item) {
+            $tiene_acciones = $item->roles()->count() > 0 ? true : false; 
+                if ($tiene_acciones) {
+                    // Mostrar mensaje de error
+                    $this->dispatch(
+                        'toast',
+                        text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque la acción "' . $item->slug_acc . '" está asociado a un rol.',
+                        color: 'danger'
+                    );
+                    return;
+            }
         }
     }
-            // Eliminar el permiso
-            $permiso->delete();
-
-            // Cerrar el modal
-            $this->dispatch('modal', modal: '#alerta', action: 'hide');
-        
+    foreach ($permiso->acciones()->with('roles')->get() as $item) {
+        $tiene_acciones = $item->roles()->count() > 0 ? true : false;
+        if($tiene_acciones){
+            //Mostrar mensaje de confirmacion
+            $this->dispatch(
+                'toast',
+                text: 'La acción "' . $item->slug_acc . '" está asociada a un rol.',
+                color: 'danger'
+            );
+            return;
+        }
     }
+    
+    // Eliminar las acciones del permiso
+    $permiso->acciones()->delete();
+    
+    // Eliminar el permiso
+    $permiso->delete();
+    
+    // Mostrar mensaje de éxito
+    $this->dispatch(
+        'toast',
+        text: 'El permiso "' . $permiso->nombre_per . '" y sus acciones asociadas han sido eliminados correctamente.',
+        color: 'success'
+    );
+    
+
+// Cerrar el modal
+$this->dispatch('modal', modal: '#alerta', action: 'hide');
+}
     
 
     // Metodo para crear un nuevo permiso
@@ -239,55 +260,34 @@ class extends Component {
             'nombre' => 'required|string|max:255',
             'accionesSeleccionadas' => 'required|array|min:1'
         ]);
+
         // Editamos el permiso
         $permiso = Permiso::query()
             ->findOrFail($this->id_permiso);
         $permiso->nombre_per = $this->nombre;
         $permiso->save();
-        // Reasignar las acciones al permiso
-        $acciones = Accion::query()
-            ->where('id_acc', $this->id_permiso)
-            ->get();
-        // Comparar las acciones actuales con las seleccionadas
-        $acciones = $acciones->pluck('id_acc')->toArray();
 
-        // Si hay más acciones seleccionadas que las actuales, se crean las nuevas
-        $nuevas_acciones = array_diff($this->accionesSeleccionados, $acciones);
-
-        if (!empty($nuevas_acciones)) {
-            foreach ($nuevas_acciones as $id_acc) {
-                $permiso_accion = new Acciones();
-                $permiso_accion->nombre_acc = $slug_acc;
-                $permiso_accion->slug_acc = $slug_acc;
-                $permiso_accion->activo_acc = true;
-                $permiso_accion->id_per = $permiso->id_per;
-                $permiso_accion->save();
-            }
-        }
-        // Si hay menos acciones seleccionadas que las actuales, se eliminan las actuales
-        $acciones_eliminar = array_diff($acciones, $this->accionesSeleccionados);
-        if (count($acciones_eliminar) > 0) {
-            foreach ($acciones_eliminar as $id_acc) {
-                $permiso_accion = Accion::query()
-                    ->where('id_per', $this->id_permiso)
-                    ->where('id_acc', $id_acc)
-                    ->first();
-                // Verificamos si el cargo está asociado a un trabajador
-                $acciones_count = $permiso_accion->permiso()->count();
-                if ($acciones_count > 0) {
-                    // Mostrar mensaje de error
-                    $this->dispatch(
-                    'toast',
-                    text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque el cargo "' . $item->slug_acc . '" está asociado a una accion.',
-                    color: 'danger'
-                );
-                    return;
-                } else {
-                    $permiso_accion->delete();
-                }
+        // Eliminar las relaciones de acción con rol
+        foreach ($permiso->acciones()->with('roles')->get() as $item) {
+            $tiene_acciones = $item->roles()->count() > 0 ? true : false;
+            if ($tiene_acciones) {
+                //eliminar la relacion de la accion con el rol}
+                $item->roles()->detach();
             }
         }
 
+        // Eliminar las acciones del permiso
+        $permiso->acciones()->delete();
+
+        //Asignar las acciones al permiso
+        foreach ($this->accionesSeleccionadas as $slug_acc) {
+            $permiso_accion = new Accion();
+            $permiso_accion->nombre_acc = $slug_acc;
+            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per.'-'.$slug_acc);
+            $permiso_accion->activo_acc = true;
+            $permiso_accion->id_per = $permiso->id_per;
+            $permiso_accion->save();
+        }
 
         // Mostrar mensaje de éxito
         $this->dispatch('toast', text: 'El permiso "' . $this->nombre. '" ha sido actualizado correctamente.', color: 'success');
@@ -428,6 +428,9 @@ class extends Component {
                                                     Sin Acciones
                                                 </span>
                                                 @endforelse
+                                                {{-- @php
+                                                dd($item->acciones)
+                                                @endphp --}}
                                             </td>
                                             <td class="text-center">
                                                 <ul class="list-inline me-auto mb-0">
