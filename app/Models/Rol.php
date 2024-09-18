@@ -35,7 +35,7 @@ class Rol extends Model
     
     public function acciones(): BelongsToMany
     {
-        return $this->belongsToMany(Accion::class, 'tbl_rol_accion', 'id_rol', 'id_accion');
+        return $this->belongsToMany(Accion::class, 'tbl_rol_permiso', 'id_rol', 'id_acc');
     }
     
     // alcance
