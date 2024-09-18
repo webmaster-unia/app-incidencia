@@ -7,7 +7,7 @@ use Livewire\WithPagination;
 
 new 
 #[Layout('components.layouts.app')]
-#[Title('Roles | SIGEIN OTI')]
+#[Title('Usuarios | SIGEIN OTI')]
 class extends Component {
     //
 }; ?>
