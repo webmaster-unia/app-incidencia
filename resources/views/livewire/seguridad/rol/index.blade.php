@@ -2,7 +2,7 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
-use App\Models\{Rol,Usuario};
+use App\Models\{Rol,Usuario,Permiso};
 use Livewire\WithPagination;
 
 new 
@@ -25,7 +25,7 @@ class extends Component {
     public string $search = '';
 
     // Variables del modal
-    public string $titulo_modal = 'Nueva Rol';
+    public string $titulo_modal = 'Nuevo Rol';
     public string $nombre_modal = 'modal-Rol';
     public string $alerta = '';
     public string $mensaje = '';
@@ -42,6 +42,9 @@ class extends Component {
     public string $nombre = '';
     #[Validate('required|string|max:255')]
     public string $descripcion = '';
+
+    #[Validate('required|array|min:1')]
+    public  array $accionesSelecionadas=[];
 
     // Metodo que se inicia con el componente
     public function mount(): void
@@ -93,7 +96,7 @@ class extends Component {
 
         if ($modo === 'crear') {
             // Asignar los valores a las variables
-            $this->titulo_modal = 'Nuevo Registro';
+            $this->titulo_modal = 'Nuevo Rol';
             $this->action_form = 'crear_rol';
 
             // Abrir el modal
@@ -104,27 +107,39 @@ class extends Component {
         } elseif ($modo === 'editar') {
             // Buscar el rol
             $data = Rol::query()
-                ->findOrFail($id);
+            ->findOrFail($id);
 
             // Asignar los valores a las variables
-            $this->titulo_modal = 'Editar Registro';
+            $this->titulo_modal = 'Editar Rol';
             $this->action_form = 'editar_rol';
             $this->nombre = $data->nombre_rol;
-            $this->orden = $data->descripcion_rol;
+            $this->descripcion = $data->descripcion_rol;
 
             // Abrir el modal
             $this->dispatch('modal',
-                modal: '#'.$this->nombre_modal,
-                action: 'show'
+            modal: '#'.$this->nombre_modal,
+            action: 'show'
             );
+
         } elseif ($modo === 'eliminar') {
-            // Buscar la complejidad
+            // Buscar el rol
             $data = Rol::query()
                 ->findOrFail($id);
 
+            // Verificar si es el rol de administrador
+            if ($data->nombre_rol === 'Administrador') {
+                // Mostrar mensaje de error
+                $this->dispatch(
+                    'toast',
+                    text: 'No se puede eliminar el rol de Administrador.',
+                    color: 'danger'
+                );
+                return;
+            }
+
             $this->titulo_modal = '';
             $this->alerta = '¡Atención!';
-            $this->mensaje = '¿Está seguro de eliminar la complejidad "' . $data->nombre_rol . '"?';
+            $this->mensaje = '¿Está seguro de eliminar el rol "' . $data->nombre_rol . '"?';
             $this->action = 'eliminar_rol';
 
             // Abrir el modal
@@ -133,15 +148,26 @@ class extends Component {
                 action: 'show'
             );
         } elseif ($modo === 'status') {
-            // Buscar la complejidad
+            // Buscar el rol
             $data = Rol::query()
                 ->findOrFail($id);
+
+            // Verificar si es el rol de administrador
+            if ($data->nombre_rol === 'Administrador') {
+                // Mostrar mensaje de error
+                $this->dispatch(
+                    'toast',
+                    text: 'No se puede cambiar el estado del rol de Administrador.',
+                    color: 'danger'
+                );
+                return;
+            }
 
             $this->titulo_modal = '';
             $this->alerta = '¡Atención!';
             $this->mensaje = $data->activo_rol
-                ? '¿Está seguro de desactivar la complejidad "' . $data->nombre_rol . '"?'
-                : '¿Está seguro de activar la complejidad "' . $data->nombre_rol . '"?';
+                ? '¿Está seguro de desactivar el rol "' . $data->nombre_rol . '"?'
+                : '¿Está seguro de activar el rol "' . $data->nombre_rol . '"?';
             $this->action = 'cambiar_estado_rol';
 
             // Abrir el modal
@@ -149,7 +175,95 @@ class extends Component {
                 modal: '#alerta',
                 action: 'show'
             );
+        } elseif ($modo === 'asignar') {
+            // Buscar el rol
+            $data = Rol::query()
+                ->findOrFail($id);
+
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Asignar Permisos';
+            $this->nombre = $data->nombre_rol;
+            $this->descripcion = $data->descripcion_rol;
+            $this->acciones = $data->acciones->pluck('id_acc')->toArray();
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#modal-asignar-permiso',
+                action: 'show'
+            );
         }
+    }
+
+    // Metodo para asignar permisos a un rol
+    public function asignar(): void
+    {
+        // Validar que el rol exista
+        $rol = Rol::query()->findOrFail($this->id_rol);
+
+        // Asignar los permisos al rol
+        $rol->acciones()->sync($this->accionesSelecionadas);
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'Los permisos han sido asignados correctamente al rol "' . $rol->nombre_rol . '".',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#modal-asignar-permiso',
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para editar un rol
+    public function editar_rol(): void
+    {
+        // Validar los campos
+        $this->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string|max:255'
+        ]);
+
+        // Buscar el rol
+        $rol = Rol::query()
+            ->findOrFail($this->id_rol);
+
+        // Verificar si es el rol de administrador
+        if ($rol->nombre_rol === 'Administrador' && $rol->nombre_rol !== $this->nombre) {
+            // Mostrar mensaje de advertencia
+            $this->dispatch(
+                'toast',
+                text: 'No se puede cambiar el nombre del rol "Administrador".',
+                color: 'danger'
+            );
+            return;
+        }
+
+        // Actualizar los campos
+        $rol->nombre_rol = $this->nombre;
+        $rol->descripcion_rol = $this->descripcion;
+        $rol->save();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'El rol "' . $rol->nombre_rol . '" ha sido actualizado correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#'.$this->nombre_modal,
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
     }
 
     // Metodo para crear un nuevo rol
@@ -258,9 +372,15 @@ class extends Component {
         $roles = Rol::query()
             ->search($this->search)
             ->paginate($this->registros);
+        
+        $permisos = Permiso::query()
+            ->where('activo_per', true)
+            ->with('acciones')
+            ->get();
 
         return [
             'roles' => $roles,
+            'permisos' => $permisos
         ];
     }
     
@@ -284,7 +404,7 @@ class extends Component {
                             class="btn btn-primary"
                             wire:click="cargar('crear', null)"
                         >
-                            Nuevo Registro
+                            Nuevo Rol
                         </button>
                     </div>
                 </div>
@@ -371,6 +491,21 @@ class extends Component {
                                                         <li
                                                             class="list-inline-item align-bottom"
                                                             data-bs-toggle="tooltip"
+                                                            aria-label="Asignar Permisos"
+                                                            data-bs-original-title="Asignar Permisos"
+                                                            wire:click="cargar('asignar', {{ $item->id_rol }})"
+                                                        >
+                                                            <a
+                                                                href="#"
+                                                                class="avtar avtar-xs btn-link-primary btn-pc-default"
+                                                            >
+                                                                <i class="ti ti-key f-18"></i>
+                                                            </a>
+                                                        </li>
+
+                                                        <li
+                                                            class="list-inline-item align-bottom"
+                                                            data-bs-toggle="tooltip"
                                                             aria-label="Editar"
                                                             data-bs-original-title="Editar"
                                                             wire:click="cargar('editar', {{ $item->id_rol }})"
@@ -444,9 +579,9 @@ class extends Component {
             </div>
         </div>
     </div>
-    <!-- Modal -->
+    <!-- Modal Crear -->
     <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog" role="document">
             <form class="modal-content" wire:submit="{{ $action_form }}">
                 <div class="modal-header animate__animated animate__fadeIn animate__faster">
                     <h5 class="modal-title">
@@ -466,7 +601,7 @@ class extends Component {
                                 class="form-control @if ($errors->has('nombre')) is-invalid @elseif($nombre) is-valid @endif"
                                 wire:model.live="nombre" id="nombre" placeholder="Ingrese el nombre del rol">
                             <small class="form-text text-muted">
-                                Ingrese el nombre de la complejidad.
+                                Ingrese el nombre del rol.
                             </small>
                             @error('nombre')
                                 <div class="invalid-feedback">
@@ -477,15 +612,15 @@ class extends Component {
                         <!--descripcion-->
                         <div class="col-md-12">
                             <label class="form-label" for="descripcion">
-                                Nombre del rol <span class="text-danger">*</span>
+                                Descripcion del rol <span class="text-danger">*</span>
                             </label>
                             <input type="text"
-                                class="form-control @if ($errors->has('nombre')) is-invalid @elseif($nombre) is-valid @endif"
-                                wire:model.live="nombre" id="nombre" placeholder="Ingrese el nombre del rol">
+                                class="form-control @if ($errors->has('descripcion')) is-invalid @elseif($descripcion) is-valid @endif"
+                                wire:model.live="descripcion" id="descripcion" placeholder="Ingrese el descripcion del rol">
                             <small class="form-text text-muted">
-                                Ingrese el nombre de la complejidad.
+                                Ingrese la descripcion del rol.
                             </small>
-                            @error('nombre')
+                            @error('descripcion')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -512,45 +647,117 @@ class extends Component {
             </form>
         </div>
     </div>
+    <!-- Modal Asignar Permiso -->
+    <div wire:ignore.self id="modal-asignar-permiso" class="modal fade" tabindex="-1" role="dialog"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <form class="modal-content" wire:submit="asignar">
+                <div class="modal-header animate_animated animatefadeIn animate_faster">
+                    <h5 class="modal-title">
+                        {{ $titulo_modal }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        wire:click="reset_modal"></button>
+                </div>
+                <div class="modal-body animate_animated animatefadeIn animate_faster">
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            Rol: <strong>{{ $nombre }}</strong>
+                        </li>
+                        <li class="list-group-item">
+                            Descripción: <strong>{{ $descripcion }}</strong>
+                        </li>
+                    </ul>
+                    <div class="mt-3">
+                        <span class="fs-5 text-muted">
+                            <strong>Asignar permisos</strong>
+                        </span>
+                        <ul class="list-group list-group-flush">
+                            @foreach ($permisos as $permiso)
+                                <li class="list-group-item">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <span>
+                                                <strong>{{ $permiso->nombre_per }}</strong>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-8">
+                                            @foreach ($permiso->acciones as $item)
+                                                <div class="form-check form-check-inline"
+                                                    wire:key="{{ $item->id_acc }}">
+                                                    <input class="form-check-input input-info" type="checkbox"
+                                                        id="{{ $item->id_acc }}" wire:model.live="accionesSelecionadas"
+                                                        value="{{ $item->id_acc }}">
+                                                    <label class="form-check-label" for="{{ $item->id_acc }}">
+                                                        {{ $item->nombre_acc }}
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer animate_animated animatefadeIn animate_faster">
+                    <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal"
+                        wire:click="reset_modal">
+                        Cerrar
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="width: 100px;"
+                        wire:loading.attr="disabled" wire:target="asignar">
+                        <span wire:loading.remove wire:target="asignar">
+                            Asignar
+                        </span>
+                        <div class="spinner-border spinner-border-sm" role="status" wire:loading
+                            wire:target="asignar">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <!-- Alerta -->
-    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body py-5 px-5">
                     <div class="row">
                         @if ($alerta != '' && $mensaje != '' && $action != '')
-                            <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
-                                <div class="d-flex flex-column text-center">
-                                    <h4 class="text-center">
-                                        {{ $alerta }}
-                                    </h4>
-                                    <h5 class="text-center fw-medium">
-                                        {{ $mensaje }}
-                                    </h5>
-                                    <div class="row g-3 mt-2">
-                                        <div class="col-6">
-                                            <button type="button" class="btn btn-light-danger w-100"
-                                                wire:click="reset_modal" data-bs-dismiss="modal">
-                                                Cancelar
-                                            </button>
-                                        </div>
-                                        <div class="col-6">
-                                            <button type="button" class="btn btn-primary w-100"
-                                                wire:click="{{ $action }}">
-                                                Aceptar
-                                            </button>
-                                        </div>
+                        <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                            <div class="d-flex flex-column text-center">
+                                <h4 class="text-center">
+                                    {{ $alerta }}
+                                </h4>
+                                <h5 class="text-center fw-medium">
+                                    {{ $mensaje }}
+                                </h5>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-light-danger w-100"
+                                            wire:click="reset_modal" data-bs-dismiss="modal">
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-primary w-100" wire:click="{{ $action }}">
+                                            Aceptar
+                                        </button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
                         @else
-                            <div class="col-md-12">
-                                <div class="d-flex justify-content-center py-3">
-                                    <div class="spinner-border text-secondary" role="status">
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-center py-3">
+                                <div class="spinner-border text-secondary" role="status">
                                     <span class="sr-only">Loading...</span>
-                                    </div>
                                 </div>
                             </div>
+                        </div>
                         @endif
                     </div>
                 </div>
