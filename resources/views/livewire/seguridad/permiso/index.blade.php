@@ -212,9 +212,9 @@ class extends Component {
     );
     
 
-// Cerrar el modal
-$this->dispatch('modal', modal: '#alerta', action: 'hide');
-}
+    // Cerrar el modal
+    $this->dispatch('modal', modal: '#alerta', action: 'hide');
+    }
     
 
     // Metodo para crear un nuevo permiso
@@ -230,6 +230,7 @@ $this->dispatch('modal', modal: '#alerta', action: 'hide');
         $permiso = new Permiso();
         $permiso->nombre_per = $this->nombre;
         $permiso->activo_per = true;
+        $permiso->slug_per=Str::slug($this->nombre);
         $permiso->save();
         
         //Asignar las acciones al permiso
@@ -265,6 +266,7 @@ $this->dispatch('modal', modal: '#alerta', action: 'hide');
         $permiso = Permiso::query()
             ->findOrFail($this->id_permiso);
         $permiso->nombre_per = $this->nombre;
+        $permiso->slug_per=Str::slug($this->nombre);
         $permiso->save();
 
         // Eliminar las relaciones de acción con rol
@@ -455,7 +457,7 @@ $this->dispatch('modal', modal: '#alerta', action: 'hide');
                                         </tr>
                                         @empty
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted py-5">
+                                            <td colspan="5" class="text-center text-muted py-5">
                                                 No hay registros para mostrar.
                                             </td>
                                         </tr>
