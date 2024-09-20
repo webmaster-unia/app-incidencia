@@ -33,7 +33,7 @@ public string $titulo_modal = 'Nueva Permiso';
     public $id_usuario = null;
     public $foto_usu = null;
     public $correo_usu= null;
-    public $contrasenia= null;
+    public $contrasena_usu= null;
     public $rol= null;
     public $trabajador= null;
     public string $action_form = 'crear_usuario';
@@ -60,6 +60,7 @@ public string $titulo_modal = 'Nueva Permiso';
             'rol',
             'trabajador',
             'correo_usu',
+            'contrasena_usu',
             'foto_usu',
         );
         $this->resetErrorBag();
@@ -121,6 +122,36 @@ public string $titulo_modal = 'Nueva Permiso';
         }
     }
 
+    public function crear_usuario(): void
+    {
+        // Validar los campos
+        $this->validate([
+            'correo_usu' => 'required|email|unique:tbl_usuario,correo_usu',
+            'contrasena_usu' => 'required|min:6',
+            'rol' => 'required|exists:tbl_rol,id_rol',
+            'trabajador' => 'required|exists:tbl_trabajador,id_tra',
+            'foto_usu' => 'nullable|image|max:1024' // Opcional, pero debe ser una imagen
+        ]);
+
+        // Crear el usuario
+        $usuario = new Usuario();
+        $usuario->correo_usu = $this->correo_usu;
+        $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
+        $usuario->id_rol = $Rol->id_rol;
+        $usuario->id_tra = $Trabajador->id_tra;
+        // $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : 'usuarios/default.png';
+        $usuario->save();
+
+        // Resetear el modal
+        $this->reset_modal();
+
+        // Cerrar el modal
+        $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'hide');
+
+        // Emitir un evento de éxito
+        $this->emit('usuarioCreado', $usuario->id_usu);
+    }
+
 
 //Método para cargar la vista correspondiente
 public function with(): array
@@ -130,16 +161,29 @@ public function with(): array
             ->orderBy('id_usu', 'asc')
             ->paginate($this->registros);
 
+        $roles = Rol::query()
+            ->orderBy('id_rol', 'asc')
+            ->where('activo_rol', true)
+            ->get();
+
+        $trabajadores = Trabajador::query()
+            ->orderBy('id_tra', 'asc')
+            ->where('activo_tra', true)
+            ->get();
+
         // dd($this->all());
 
         return [
-            'usuarios' => $usuarios
+            'usuarios' => $usuarios,
+            'roles' => $roles,
+            'trabajadores' => $trabajadores
         ];
     }
 }; ?>
 
 <div>
     <x-page.header :breadcrumbs="$breadcrumbs" :titulo="$titulo_componente" />
+    <!--Tabla de Usuarios-->
     <div class="row">
         <div class="col-sm-12">
             <div class="card table-card">
@@ -201,7 +245,7 @@ public function with(): array
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center justify-content-start gap-3">
-                                                    <img src="{{ $usuario->foto_usu }}" alt="Foto"
+                                                    <img src="{{ e($usuario->foto_usu) }}" alt="Foto"
                                                         class="user-avtar wid-40 rounded-circle" width="50">
                                                     <div class="text-center">
                                                         {{ $usuario->correo_usu }}
@@ -301,15 +345,169 @@ public function with(): array
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                         wire:click="reset_modal"></button>
-                    <div class="modal-body animate__animated animate__fadeIn animate__faster">
-                        <div class="row-g3">
-                            <div class="col-md-12">
-
+                </div>
+                <div class="modal-body animate__animated animate__fadeIn animate__faster">
+                    <div class="row-g3">
+                        <div class="col-md-12">
+                            <label class="form-label" for="foto_usu">
+                                Agregar Foto <span class="text-danger">*</span>
+                            </label>
+                            <input type="file"
+                                class="form-control @if ($errors->has('foto_usu')) is-invalid @elseif($foto_usu) is-valid @endif"
+                                wire:model.live="foto_usu" id="foto_usu" placeholder="Seleccione una foto">
+                            <small class="form-text text-muted">
+                                Seleccione una foto para el usuario.
+                            </small>
+                            @error('foto_usu')
+                            <div class="invalid-feedback">
+                                {{ $message }}
                             </div>
+                            @enderror
                         </div>
+                    </div>
+                    @if ($modo_modal == 'crear')
+                    <div>
+                        <label for="correo_usu" class="form-label">Correo del usuario<span class="text-danger">*</span>
+                        </label>
+                        <input type="email" class="form-control @error('correo_usu') is-invalid @enderror"
+                            id="correo_usu" wire:model.live="correo_usu" placeholder="Ingrese Correo Nuevo">
+                        <small class="form-text text-muted">
+                            Ingrese Correo del Usuario
+                        </small>
+                        @error('correo_usu')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                    @endif
+                    @if ($modo_modal == 'crear')
+                    <div>
+                        <label for="contrasena_usu" class="form-label">Contraseña del Usuario<span
+                                class="text-danger">*</span>
+                        </label>
+                        <div>
+                            <input type="password" class="form-control @error('contrasena_usu') is-invalid @enderror"
+                                id="contrasena_usu" wire:model.live="contrasena_usu" placeholder="Ingrese Contraseña Nueva"
+                                autocomplete="new-password">
+                            <small class="form-text text-muted">
+                                Ingrese Contraseña del Usuario
+                            </small>
+                            @error('contrasena_usu')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                    </div>
+                    @endif
+                    <div class="col-lg-12">
+                        <label for="rol" class="form-label required">
+                            Rol
+                        </label>
+                        <select
+                            class="form-select @if($errors->has('rol')) is-invalid @elseif($rol) is-invalid is-valid-lite @endif"
+                            id="rol" whire:model.live="rol">
+                            <option value="">
+                                Seleccione un rol
+                            </option>
+                            @foreach($roles as $rol)
+                            <option value="{{ $rol->id_rol }}">
+                                {{ $rol->nombre_rol }}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('rol')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                    <div class="col-lg-12">
+                        <label for="trabajador" class="form-label required">
+                            Trabajador
+                        </label>
+                        <select
+                            class="form-select @if($errors->has('trabajador')) is-invalid @elseif($trabajador) is-invalid is-valid-lite @endif"
+                            id="trabajador" whire:model.live="trabajador">
+                            <option value="">
+                                Seleccione un trabajador
+                            </option>
+                            @foreach($trabajadores as $trabajador)
+                            <option value="{{ $trabajador->id_tra }}">
+                                {{ $trabajador->nombres_tra }}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('trabajador')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                    <div class="modal-footer animate__animated animate__fadeIn animate__faster">
+                        <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal"
+                            wire:click="reset_modal">
+                            Cerrar
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="width: 100px;" wire:loading.attr="disabled"
+                            wire:target="guardar">
+                            <span wire:loading.remove wire:target="guardar">
+                                Guardar
+                            </span>
+                            <div class="spinner-border spinner-border-sm" role="status" wire:loading
+                                wire:target="guardar">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    <!-- Alerta -->
+    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body py-5 px-5">
+                    <div class="row">
+                        @if ($alerta != '' && $mensaje != '' && $action != '')
+                        <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                            <div class="d-flex flex-column text-center">
+                                <h4 class="text-center">
+                                    {{ $alerta }}
+                                </h4>
+                                <h5 class="text-center fw-medium">
+                                    {{ $mensaje }}
+                                </h5>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-light-danger w-100"
+                                            wire:click="reset_modal" data-bs-dismiss="modal">
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-primary w-100" wire:click="{{ $action }}">
+                                            Aceptar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-center py-3">
+                                <div class="spinner-border text-secondary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
