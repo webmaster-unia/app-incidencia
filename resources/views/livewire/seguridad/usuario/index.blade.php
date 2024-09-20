@@ -11,17 +11,17 @@ new
 class extends Component {
     use WithPagination;
 
-// Define la variables para el Page Header
-public string $titulo_componente = 'Usuarios';
-public array $breadcrumbs = [];
-// Define la variable para la cantidad de registros por página
-#[Url(as: 'registros', except: 5)]
-public int $registros = 5;
-// Define la variable para el buscador
-#[Url(as: 'buscador', except: '')]
-public string $search = '';
-// Variables del modal
-public string $titulo_modal = 'Nueva Permiso';
+    // Define la variables para el Page Header
+    public string $titulo_componente = 'Usuarios';
+    public array $breadcrumbs = [];
+    // Define la variable para la cantidad de registros por página
+    #[Url(as: 'registros', except: 5)]
+    public int $registros = 5;
+    // Define la variable para el buscador
+    #[Url(as: 'buscador', except: '')]
+    public string $search = '';
+    // Variables del modal
+    public string $titulo_modal = 'Nueva Permiso';
     public string $nombre_modal = 'modal-permiso';
     public string $alerta = '';
     public string $mensaje = '';
@@ -38,88 +38,88 @@ public string $titulo_modal = 'Nueva Permiso';
     public $trabajador= null;
     public string $action_form = 'crear_usuario';
 
-// Metodo que se inicia con el componente
+    // Metodo que se inicia con el componente
     public function mount(): void
     {
-        $this->breadcrumbs = [
-            ['url' => route('inicio.index'), 'title' => 'Inicio'],
-            ['url' => '', 'title' => 'Seguridad'],
-            ['url' => '', 'title' => 'Usuarios']
-        ];
+            $this->breadcrumbs = [
+                ['url' => route('inicio.index'), 'title' => 'Inicio'],
+                ['url' => '', 'title' => 'Seguridad'],
+                ['url' => '', 'title' => 'Usuarios']
+            ];
     }
     public function reset_modal(): void
     {
-        $this->reset(
-            'modo_modal',
-            'id_usuario',
-            'action_form',
-            'titulo_modal',
-            'alerta',
-            'mensaje',
-            'action',
-            'rol',
-            'trabajador',
-            'correo_usu',
-            'contrasena_usu',
-            'foto_usu',
-        );
-        $this->resetErrorBag();
-        $this->resetValidation();
+            $this->reset(
+                'modo_modal',
+                'id_usuario',
+                'action_form',
+                'titulo_modal',
+                'alerta',
+                'mensaje',
+                'action',
+                'rol',
+                'trabajador',
+                'correo_usu',
+                'contrasena_usu',
+                'foto_usu',
+            );
+            $this->resetErrorBag();
+            $this->resetValidation();
     }
 
     // Metodo que carga el modal
     public function cargar(string $modo, ?int $id): void
     {
-        $this->reset_modal();
-        $this->modo_modal = $modo;
-        $this->id_usuario = $id;
-        if ($modo == 'crear') {
-            // Asignar los valores a las variables
-            $this->titulo_modal = 'Nuevo Registro';
-            $this->action_form = 'crear_usuario';
-            // Abrir el modal
-            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
-        } elseif ($modo == 'editar') {
-            // Buscar usuario
-            $data = Usuario::query()
-                ->findOrFail($id);
-           
-            // Asignar los valores a las variables
-            $this->titulo_modal = 'Editar Registro';
-            $this->action_form = 'editar_usuario';
-            $this->correo_usu = $data->correo_usu;
-            $this->nombre_usu = $data->nombre_usu;
-            $this->foto_usu = $data->foto_usu;
-            $this->estado_usu = $data->estado_usu;
-            // Abrir el modal
-            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
-        } elseif ($modo == 'eliminar') {
-            // Buscar usuario
-            $data = Usuario::query()
-                ->findOrFail($id);
+            $this->reset_modal();
+            $this->modo_modal = $modo;
+            $this->id_usuario = $id;
+            if ($modo == 'crear') {
+                // Asignar los valores a las variables
+                $this->titulo_modal = 'Nuevo Registro';
+                $this->action_form = 'crear_usuario';
+                // Abrir el modal
+                $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+            } elseif ($modo == 'editar') {
+                // Buscar usuario
+                $data = Usuario::query()
+                    ->findOrFail($id);
+            
+                // Asignar los valores a las variables
+                $this->titulo_modal = 'Editar Registro';
+                $this->action_form = 'editar_usuario';
+                $this->correo_usu = $data->correo_usu;
+                $this->nombre_usu = $data->nombre_usu;
+                $this->foto_usu = $data->foto_usu;
+                $this->estado_usu = $data->estado_usu;
+                // Abrir el modal
+                $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+            } elseif ($modo == 'eliminar') {
+                // Buscar usuario
+                $data = Usuario::query()
+                    ->findOrFail($id);
 
-            $this->titulo_modal = '';
-            $this->alerta = '¡Atención!';
-            $this->mensaje = '¿Está seguro de eliminar el usuario "' . $data->correo_usu. '"?';
-            $this->action = 'eliminar_usuario';
+                $this->titulo_modal = '';
+                $this->alerta = '¡Atención!';
+                $this->mensaje = '¿Está seguro de eliminar el usuario "' . $data->correo_usu. '"?';
+                $this->action = 'eliminar_usuario';
 
-            // Abrir el modal
-            $this->dispatch('modal', modal: '#alerta', action: 'show');
-        } elseif ($modo == 'status') {
-            // Buscar el usuario
-            $data = Usuario::query()
-                ->findOrFail($id);
+                // Abrir el modal
+                $this->dispatch('modal', modal: '#alerta', action: 'show');
+            } elseif ($modo == 'status') {
+                // Buscar el usuario
+                $data = Usuario::query()
+                    ->findOrFail($id);
 
-            $this->titulo_modal = '';
-            $this->alerta = '¡Atención!';
-            $this->mensaje = $data->estado_usu
-                ? '¿Está seguro de desactivar el usuario "' . $data->correo_usu. '"?'
-                : '¿Está seguro de activar el usuario "' . $data->correo_usu. '"?';
-            $this->action = 'cambiar_estado_usuario';
+                $this->titulo_modal = '';
+                $this->alerta = '¡Atención!';
+                $this->mensaje = $data->estado_usu
+                    ? '¿Está seguro de desactivar el usuario "' . $data->correo_usu. '"?'
+                    : '¿Está seguro de activar el usuario "' . $data->correo_usu. '"?';
+                $this->action = 'cambiar_estado_usuario';
 
-            // Abrir el modal
-            $this->dispatch('modal', modal: '#alerta', action: 'show');
-        }
+                // Abrir el modal
+                $this->dispatch('modal', modal: '#alerta', action: 'show');
+            }
     }
 
     public function crear_usuario(): void
@@ -137,8 +137,8 @@ public string $titulo_modal = 'Nueva Permiso';
         $usuario = new Usuario();
         $usuario->correo_usu = $this->correo_usu;
         $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
-        $usuario->id_rol = $Rol->id_rol;
-        $usuario->id_tra = $Trabajador->id_tra;
+        $usuario->id_rol = $this->id_rol;
+        $usuario->id_tra = $this->id_tra;
         // $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : 'usuarios/default.png';
         $usuario->save();
 
@@ -153,8 +153,8 @@ public string $titulo_modal = 'Nueva Permiso';
     }
 
 
-//Método para cargar la vista correspondiente
-public function with(): array
+    //Método para cargar la vista correspondiente
+    public function with(): array
     {
         $usuarios = Usuario::query()
             ->where('correo_usu', 'like', "%{$this->search}%")
@@ -388,8 +388,8 @@ public function with(): array
                         </label>
                         <div>
                             <input type="password" class="form-control @error('contrasena_usu') is-invalid @enderror"
-                                id="contrasena_usu" wire:model.live="contrasena_usu" placeholder="Ingrese Contraseña Nueva"
-                                autocomplete="new-password">
+                                id="contrasena_usu" wire:model.live="contrasena_usu"
+                                placeholder="Ingrese Contraseña Nueva" autocomplete="new-password">
                             <small class="form-text text-muted">
                                 Ingrese Contraseña del Usuario
                             </small>
