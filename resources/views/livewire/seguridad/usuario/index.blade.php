@@ -137,8 +137,8 @@ class extends Component {
         $usuario = new Usuario();
         $usuario->correo_usu = $this->correo_usu;
         $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
-        $usuario->id_rol = $this->id_rol;
-        $usuario->id_tra = $this->id_tra;
+        $usuario->id_rol = $this->rol;
+        $usuario->id_tra = $this->trabajador;
         // $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : 'usuarios/default.png';
         $usuario->save();
 
@@ -147,9 +147,6 @@ class extends Component {
 
         // Cerrar el modal
         $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'hide');
-
-        // Emitir un evento de éxito
-        $this->emit('usuarioCreado', $usuario->id_usu);
     }
 
 
@@ -406,8 +403,8 @@ class extends Component {
                             Rol
                         </label>
                         <select
-                            class="form-select @if($errors->has('rol')) is-invalid @elseif($rol) is-invalid is-valid-lite @endif"
-                            id="rol" whire:model.live="rol">
+                            class="form-select @if($errors->has('rol')) is-invalid @elseif($rol) is-valid-lite @endif"
+                            id="rol" wire:model.live="rol">
                             <option value="">
                                 Seleccione un rol
                             </option>
@@ -428,8 +425,8 @@ class extends Component {
                             Trabajador
                         </label>
                         <select
-                            class="form-select @if($errors->has('trabajador')) is-invalid @elseif($trabajador) is-invalid is-valid-lite @endif"
-                            id="trabajador" whire:model.live="trabajador">
+                            class="form-select @if($errors->has('trabajador')) is-invalid @elseif($trabajador) is-valid-lite @endif"
+                            id="trabajador" wire:model.live="trabajador">
                             <option value="">
                                 Seleccione un trabajador
                             </option>
