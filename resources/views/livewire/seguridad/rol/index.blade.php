@@ -3,6 +3,7 @@
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
 use App\Models\{Rol,Usuario,Permiso};
+use Illuminate\Support\Str;
 use Livewire\WithPagination;
 
 new 
@@ -247,6 +248,7 @@ class extends Component {
         // Actualizar los campos
         $rol->nombre_rol = $this->nombre;
         $rol->descripcion_rol = $this->descripcion;
+        $rol->slug_rol = Str::slug($this->nombre);
         $rol->save();
 
         // Mostrar mensaje de éxito
@@ -279,6 +281,7 @@ class extends Component {
         $rol = new Rol();
         $rol->nombre_rol = $this->nombre;
         $rol->descripcion_rol = $this->descripcion;
+        $rol->slug_rol = Str::slug($this->nombre);
         $rol->activo_rol = true;
         $rol->save();
 
