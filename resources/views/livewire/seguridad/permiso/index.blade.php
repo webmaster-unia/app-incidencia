@@ -2,17 +2,15 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
-use App\Models\{Permiso, Accion, RolPermiso};
+use App\Models\{Permiso, accion, RolPermiso};
 use Livewire\WithPagination;
 
 new
 #[Layout('components.layouts.app')]
 #[Title('Permisos | SIGEIN OTI')]
 class extends Component {
-    use WithPagination;
-
-    // Define la variables para el Page Header
-    public string $titulo_componente = 'Permisos';
+   // Define la variables para el Page Header
+   public string $titulo_componente = 'Permisos';
     public array $breadcrumbs = [];
     // Define la variable para la cantidad de registros por página
     #[Url(as: 'registros', except: 5)]
@@ -33,33 +31,19 @@ class extends Component {
     public $id_permiso = null;
     public string $action_form = 'crear_permiso';
 
-
     // Variables para el formulario
     #[Validate('required|string|max:255')]
     public string $nombre = '';
-    #[Validate('required|array|min:1')]
-    public array $accionesSeleccionadas = [];
-    #[Validate('required|string|max:255')]
-    public string $accion_permiso = '';
-
-    // Metodo que se inicia con el componente
-    public function mount(): void
+     // Metodo que se inicia con el componente
+     public function mount(): void
     {
         $this->titulo_componente = 'Permisos';
-        $this->acciones = [
-            ['id_acc' => 1, 'nombre_acc' => 'Index', 'slug_acc' => 'index'],
-            ['id_acc' => 2, 'nombre_acc' => 'Crear', 'slug_acc' => 'create'],
-            ['id_acc' => 2, 'nombre_acc' => 'Editar', 'slug_acc' => 'edit'],
-            ['id_acc' => 3, 'nombre_acc' => 'Eliminar', 'slug_acc' => 'delete'],
-            ['id_acc' => 4, 'nombre_acc' => 'Cambia Estado', 'slug_acc' => 'status']
-        ];
         $this->breadcrumbs = [
             ['url' => route('inicio.index'), 'title' => 'Inicio'],
             ['url' => '', 'title' => 'Seguridad'],
             ['url' => '', 'title' => 'Permisos']
         ];
     }
-
     public function reset_modal(): void
     {
         $this->reset(
@@ -70,14 +54,11 @@ class extends Component {
             'titulo_modal',
             'alerta',
             'mensaje',
-            'action',
-            'accion_permiso',
-            'accionesSeleccionadas'
+            'action'
         );
         $this->resetErrorBag();
         $this->resetValidation();
     }
-
     // Metodo que carga el modal
     public function cargar(string $modo, ?int $id): void
     {
@@ -89,21 +70,28 @@ class extends Component {
             $this->titulo_modal = 'Nuevo Registro';
             $this->action_form = 'crear_permiso';
             // Abrir el modal
-            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+        $this->dispatch('modal',
+                modal: '#'.$this->nombre_modal,
+                action: 'show'
+            );
         } elseif ($modo == 'editar') {
             // Buscar permiso
             $data = Permiso::query()
                 ->findOrFail($id);
-           
+
             // Asignar los valores a las variables
             $this->titulo_modal = 'Editar Registro';
             $this->action_form = 'editar_permiso';
             $this->nombre = $data->nombre_per;
-            $this->accionesSeleccionadas = $data->acciones()->pluck('nombre_acc')->toArray();
+            $this->slug = $data->slug_per;
+
             // Abrir el modal
-            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+            $this->dispatch('modal',
+                modal: '#'.$this->nombre_modal,
+                action: 'show'
+            );
         } elseif ($modo == 'eliminar') {
-            // Buscar permiso
+           // Buscar permiso
             $data = Permiso::query()
                 ->findOrFail($id);
 
@@ -113,7 +101,10 @@ class extends Component {
             $this->action = 'eliminar_permiso';
 
             // Abrir el modal
-            $this->dispatch('modal', modal: '#alerta', action: 'show');
+            $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'show'
+            );
         } elseif ($modo == 'status') {
             // Buscar la permiso
             $data = Permiso::query()
@@ -127,182 +118,135 @@ class extends Component {
             $this->action = 'cambiar_estado_permiso';
 
             // Abrir el modal
-            $this->dispatch('modal', modal: '#alerta', action: 'show');
-        }
-    }
-
-    // Metodo para agregar una nueva accion
-    public function agregar_accion(): void
-    {
-        // Validar el campo
-        $this->acciones = array_merge($this->acciones, [
-            [
-                'id_acc' => count($this->acciones) + 1,
-                'nombre_acc' => $this->accion_permiso,
-                'slug_acc' => Str::slug($this->accion_permiso)
-            ]
-        ]);
-        // Limpiar el campo
-        $this->accion_permiso = '';
-
-        // Mostrar mensaje de éxito
-        $this->dispatch('toast', text: 'La acción ha sido agregada correctamente.', color: 'success');
-    }
-    // Metodo para eliminar una accion
-    public function eliminar_accion(int $id_acc): void
-    {
-        // Buscar la accion
-        $this->acciones = array_filter($this->acciones, function ($accion) use ($id_acc) {
-            return $accion['id_acc'] != $id_acc;
-        });
-
-        // Mostrar mensaje de éxito
-        $this->dispatch('toast', text: 'La acción ha sido eliminada correctamente.', color: 'success');
-    }
-
-
-    // Metodo para eliminar un registro de permiso
-    public function eliminar_permiso(): void
-    {
-        // Buscar el permiso
-        $permiso = Permiso::query()
-            ->with('acciones')
-            ->findOrFail($this->id_permiso);
-        // Verificar si el permiso tiene acciones
-        $tiene_acciones = $permiso->acciones()->count() > 0 ? true : false;
-        if ($tiene_acciones) {
-            //Verificar si las acciones tienen un rol asociado
-            foreach ($permiso->acciones()->with('roles')->get() as $item) {
-            $tiene_acciones = $item->roles()->count() > 0 ? true : false; 
-                if ($tiene_acciones) {
-                    // Mostrar mensaje de error
-                    $this->dispatch(
-                        'toast',
-                        text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque la acción "' . $item->slug_acc . '" está asociado a un rol.',
-                        color: 'danger'
-                    );
-                    return;
-            }
-        }
-    }
-    foreach ($permiso->acciones()->with('roles')->get() as $item) {
-        $tiene_acciones = $item->roles()->count() > 0 ? true : false;
-        if($tiene_acciones){
-            //Mostrar mensaje de confirmacion
-            $this->dispatch(
-                'toast',
-                text: 'La acción "' . $item->slug_acc . '" está asociada a un rol.',
-                color: 'danger'
+            $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'show'
             );
-            return;
         }
+
+
+
     }
-    
-    // Eliminar las acciones del permiso
-    $permiso->acciones()->delete();
-    
-    // Eliminar el permiso
-    $permiso->delete();
-    
+    // Metodo para agregar un nuevo registro de permiso
+public function agregar_permiso(): void
+{
+    // Validar el campo permiso
+    $this->validate([
+        'permiso' => 'required|string|max:255'
+    ]);
+
+    // Crear el permiso
+    $permiso = new Permiso();
+    $permiso->nombre_per = $this->permiso;
+    $permiso->activo_per = true;
+    $permiso->save();
+
+    // Actualizar la lista de permisos
+    $this->permisos = Permiso::query()
+        ->where('activo_per', true)
+        ->get();
+
+    // Limpiar el campo permiso
+    $this->reset('permiso');
+}
+
+// Metodo para eliminar un registro de permiso
+public function eliminar_permiso(): void
+{
+    // Buscar el permiso
+    $permiso = Permiso::query()
+        ->findOrFail($this->id_permiso);
+
+    $acciones_count = $permiso->acciones()->count();
+    if ($acciones_count > 0) {
+        // Mostrar mensaje de error
+        $this->dispatch(
+            'toast',
+            text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque está asociado a una acción.',
+            color: 'danger'
+        );
+        return;
+    } else {
+        // Eliminar el permiso
+        $permiso->delete();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'El permiso "' . $permiso->nombre_per . '" ha sido eliminado correctamente.',
+            color: 'success'
+        );
+    // Abrir el modal
+    $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'hide'
+            );
+    }
+}
+
+// Metodo para crear un nuevo permiso
+public function crear_permiso(): void
+{
+    // Validar los campos
+    $this->validate([
+        'nombre' => 'required|string|max:255'
+    ]);
+
+    // Creamos el permiso
+    $permiso = new Permiso();
+    $permiso->nombre_per = $this->nombre;
+    $permiso->activo_per = true;
+    $permiso->save();
+
     // Mostrar mensaje de éxito
     $this->dispatch(
         'toast',
-        text: 'El permiso "' . $permiso->nombre_per . '" y sus acciones asociadas han sido eliminados correctamente.',
+        text: 'El permiso "' . $this->nombre. '" ha sido creado correctamente.',
         color: 'success'
     );
-    
 
     // Cerrar el modal
-    $this->dispatch('modal', modal: '#alerta', action: 'hide');
-    }
-    
+    $this->dispatch('modal',
+        modal: '#'.$this->nombre_modal,
+        action: 'hide'
+    );
 
-    // Metodo para crear un nuevo permiso
-    public function crear_permiso(): void
-    {
-        // Validar los campos
-        $this->validate([
-            'nombre' => 'required|string|max:255',
-            'accionesSeleccionadas' => 'required|array|min:1'
-        ]);
+    // Limpiar los campos
+    $this->reset_modal();
+}
 
-        // Creamos el permiso
-        $permiso = new Permiso();
-        $permiso->nombre_per = $this->nombre;
-        $permiso->activo_per = true;
-        $permiso->slug_per=Str::slug($this->nombre);
-        $permiso->save();
-        
-        //Asignar las acciones al permiso
-        foreach ($this->accionesSeleccionadas as $slug_acc) {
-            $permiso_accion = new Accion();
-            $permiso_accion->nombre_acc = $slug_acc;
-            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per.'-'.$slug_acc);
-            $permiso_accion->activo_acc = true;
-            $permiso_accion->id_per = $permiso->id_per;
-            $permiso_accion->save();
-        }
+// Metodo para editar un permiso
+public function editar_permiso(): void
+{
+    // Validar los campos
+    $this->validate([
+        'nombre' => 'required|string|max:255'
+    ]);
 
-        // Mostrar mensaje de éxito
-        $this->dispatch('toast', text: 'El permiso "' . $this->nombre. '" ha sido creado correctamente.', color: 'success');
+    // Editamos el permiso
+    $permiso = Permiso::query()
+        ->findOrFail($this->id_permiso);
+    $permiso->nombre_per = $this->nombre;
+    $permiso->save();
 
-        // Cerrar el modal
-        $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'hide');
+    // Mostrar mensaje de éxito
+    $this->dispatch(
+        'toast',
+        text: 'El permiso "' . $this->nombre. '" ha sido actualizado correctamente.',
+        color: 'success'
+    );
 
-        // Limpiar los campos
-        $this->reset_modal();
-    }
+    // Cerrar el modal
+    $this->dispatch('modal',
+        modal: '#'.$this->nombre_modal,
+        action: 'hide'
+    );
 
-    // Metodo para editar un permiso
-    public function editar_permiso(): void
-    {
-        // Validar los campos
-        $this->validate([
-            'nombre' => 'required|string|max:255',
-            'accionesSeleccionadas' => 'required|array|min:1'
-        ]);
-
-        // Editamos el permiso
-        $permiso = Permiso::query()
-            ->findOrFail($this->id_permiso);
-        $permiso->nombre_per = $this->nombre;
-        $permiso->slug_per=Str::slug($this->nombre);
-        $permiso->save();
-
-        // Eliminar las relaciones de acción con rol
-        foreach ($permiso->acciones()->with('roles')->get() as $item) {
-            $tiene_acciones = $item->roles()->count() > 0 ? true : false;
-            if ($tiene_acciones) {
-                //eliminar la relacion de la accion con el rol}
-                $item->roles()->detach();
-            }
-        }
-
-        // Eliminar las acciones del permiso
-        $permiso->acciones()->delete();
-
-        //Asignar las acciones al permiso
-        foreach ($this->accionesSeleccionadas as $slug_acc) {
-            $permiso_accion = new Accion();
-            $permiso_accion->nombre_acc = $slug_acc;
-            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per.'-'.$slug_acc);
-            $permiso_accion->activo_acc = true;
-            $permiso_accion->id_per = $permiso->id_per;
-            $permiso_accion->save();
-        }
-
-        // Mostrar mensaje de éxito
-        $this->dispatch('toast', text: 'El permiso "' . $this->nombre. '" ha sido actualizado correctamente.', color: 'success');
-
-        // Cerrar el modal
-        $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'hide');
-
-        // Limpiar los campos
-        $this->reset_modal();
-    }
-
-    // Metodo para cambiar el estado de permiso
-    public function cambiar_estado_permiso(): void
+    // Limpiar los campos
+    $this->reset_modal();
+}
+// Metodo para cambiar el estado de permiso
+public function cambiar_estado_permiso(): void
     {
         // Buscar permiso
         $permiso = Permiso::query()
@@ -313,15 +257,21 @@ class extends Component {
         $permiso->save();
 
         // Mostrar mensaje de éxito
-        $this->dispatch('toast', text: 'El permiso "' . $permiso->nombre_per . '" ha sido ' . ($permiso->activo_per ? 'activado' : 'desactivado') . ' correctamente.', color: 'success');
+        $this->dispatch(
+            'toast',
+            text: 'La oficina "' . $permiso->nombre_per . '" ha sido ' . ($permiso->activo_per ? 'activado' : 'desactivado') . ' correctamente.',
+            color: 'success'
+        );
 
         // Cerrar el modal
-        $this->dispatch('modal', modal: '#alerta', action: 'hide');
+        $this->dispatch('modal',
+            modal: '#alerta',
+            action: 'hide'
+        );
 
         // Limpiar los campos
         $this->reset_modal();
     }
-
     // Metodo que renderiza la vista
     public function with(): array
     {
@@ -329,15 +279,11 @@ class extends Component {
             ->where('nombre_per', 'like', "%{$this->search}%")
             ->orderBy('id_per', 'asc')
             ->paginate($this->registros);
-
-        // dd($this->all());
-
         return [
             'permisos' => $permisos
         ];
     }
-};
-?>
+}; ?>
 
 <div>
     <x-page.header :breadcrumbs="$breadcrumbs" :titulo="$titulo_componente" />
@@ -391,7 +337,6 @@ class extends Component {
                                             <th class="col-md-3">NOMBRE</th>
                                             <th class="text-center">ESTADO</th>
                                             <th class="text-center">ACCIONES</th>
-                                            <th class="text-center">OPCIONES</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -420,20 +365,6 @@ class extends Component {
                                                 </span>
                                                 @endif
                                             </td>
-                                            <td>
-                                                @forelse ($item->acciones as $nombre_acc)
-                                                <span class="badge text-bg-light text-dark rounded f-12">
-                                                    {{ $nombre_acc->slug_acc }}
-                                                </span>
-                                                @empty
-                                                <span class="badge text-bg-light text-dark rounded f-12">
-                                                    Sin Acciones
-                                                </span>
-                                                @endforelse
-                                                {{-- @php
-                                                dd($item->acciones)
-                                                @endphp --}}
-                                            </td>
                                             <td class="text-center">
                                                 <ul class="list-inline me-auto mb-0">
                                                     <li class="list-inline-item align-bottom" data-bs-toggle="tooltip"
@@ -452,12 +383,21 @@ class extends Component {
                                                             <i class="ti ti-trash f-18"></i>
                                                         </a>
                                                     </li>
+                                                    <li class="list-inline-item align-bottom" data-bs-toggle="tooltip"
+                                                        aria-label="Ver" data-bs-original-title="Ver"
+                                                        wire:click="cargar('Ver', {{ $item->id_per }})">
+                                                        <a href="#"
+                                                            class="avtar avtar-xs btn-link-secondary btn-pc-default">
+                                                            <i class="ti ti-eye f-18"></i>
+                                                        </a>
+                                                        </a>
+                                                    </li>
                                                 </ul>
                                             </td>
                                         </tr>
                                         @empty
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted py-5">
+                                            <td colspan="3" class="text-center text-muted py-5">
                                                 No hay registros para mostrar.
                                             </td>
                                         </tr>
@@ -499,7 +439,7 @@ class extends Component {
     </div>
     <!-- Modal -->
     <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-none" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <form class="modal-content" wire:submit="{{ $action_form }}">
                 <div class="modal-header animate__animated animate__fadeIn animate__faster">
                     <h5 class="modal-title">
@@ -512,7 +452,7 @@ class extends Component {
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label class="form-label" for="nombre">
-                                Agregar nombre Permiso <span class="text-danger">*</span>
+                                Agregar nombre del Permiso <span class="text-danger">*</span>
                             </label>
                             <input type="text"
                                 class="form-control @if ($errors->has('nombre')) is-invalid @elseif($nombre) is-valid @endif"
@@ -521,71 +461,25 @@ class extends Component {
                                 Ingrese el nombre del Permiso.
                             </small>
                             @error('nombre')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
                             @enderror
-                        </div>
-                        <div class="col-md-12">
-                            <div class="row gy-1 gx-3 align-items-center">
-                                <div class="col-md-12">
-                                    <label class="form-label">
-                                        Lista de acciones
-                                    </label>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="input-group">
-                                        <input type="text"
-                                            class="form-control @if ($errors->has('accion_permiso')) is-invalid @elseif($accion_permiso) is-valid @endif"
-                                            wire:model.live="accion_permiso" id="accion_permiso"
-                                            placeholder="Ingrese la acción del permiso">
-                                        <button class="btn btn-light-primary d-flex align-items-center" type="button"
-                                            wire:click="agregar_accion">
-                                            <i class="ti ti-plus fs-4"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="row g-1">
-                                @foreach ($acciones as $item)
-                                <div class="col-6">
-                                    <div class="card mb-1">
-                                        <div class="py-1 px-2 d-flex justify-content-between align-items-center gap-2">
-                                            <div>
-                                                <input
-                                                    class="form-check-input me-1 @if ($errors->has('accionesSeleccionadas')) is-invalid @endif"
-                                                    type="checkbox" wire:model.live="accionesSeleccionadas"
-                                                    id="accion-{{ $item['id_acc'] }}" value="{{ $item['slug_acc'] }}">
-                                                <label for="accion-{{ $item['id_acc'] }}"
-                                                    class="@if ($errors->has('accionesSeleccionadas')) text-danger @endif">
-                                                    {{ $item['nombre_acc'] }}
-                                                </label>
-                                            </div>
-                                            <button type="button" class="btn btn-icon btn-link-danger"
-                                                wire:click="eliminar_accion({{ $item['id_acc'] }})"
-                                                wire:confirm="¿Está seguro de eliminar la acción?">
-                                                <i class="ti ti-circle-x fs-4 text-danger"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer animate__animated animate__fadeIn animate__faster">
-                    <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal" wire:click="reset_modal">
+                    <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal"
+                        wire:click="reset_modal">
                         Cerrar
                     </button>
-                    <button type="submit" class="btn btn-primary" style="width: 100px;" wire:loading.attr="disabled"
-                        wire:target="guardar">
+                    <button type="submit" class="btn btn-primary" style="width: 100px;"
+                        wire:loading.attr="disabled" wire:target="guardar">
                         <span wire:loading.remove wire:target="guardar">
                             Guardar
                         </span>
-                        <div class="spinner-border spinner-border-sm" role="status" wire:loading wire:target="guardar">
+                        <div class="spinner-border spinner-border-sm" role="status" wire:loading
+                            wire:target="guardar">
                             <span class="sr-only">Loading...</span>
                         </div>
                     </button>
@@ -594,44 +488,44 @@ class extends Component {
         </div>
     </div>
     <!-- Alerta -->
-    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog"
-        aria-hidden="true">
+    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body py-5 px-5">
                     <div class="row">
                         @if ($alerta != '' && $mensaje != '' && $action != '')
-                        <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
-                            <div class="d-flex flex-column text-center">
-                                <h4 class="text-center">
-                                    {{ $alerta }}
-                                </h4>
-                                <h5 class="text-center fw-medium">
-                                    {{ $mensaje }}
-                                </h5>
-                                <div class="row g-3 mt-2">
-                                    <div class="col-6">
-                                        <button type="button" class="btn btn-light-danger w-100"
-                                            wire:click="reset_modal" data-bs-dismiss="modal">
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                    <div class="col-6">
-                                        <button type="button" class="btn btn-primary w-100" wire:click="{{ $action }}">
-                                            Aceptar
-                                        </button>
+                            <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                                <div class="d-flex flex-column text-center">
+                                    <h4 class="text-center">
+                                        {{ $alerta }}
+                                    </h4>
+                                    <h5 class="text-center fw-medium">
+                                        {{ $mensaje }}
+                                    </h5>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-light-danger w-100"
+                                                wire:click="reset_modal" data-bs-dismiss="modal">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-primary w-100"
+                                                wire:click="{{ $action }}">
+                                                Aceptar
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
                         @else
-                        <div class="col-md-12">
-                            <div class="d-flex justify-content-center py-3">
-                                <div class="spinner-border text-secondary" role="status">
+                            <div class="col-md-12">
+                                <div class="d-flex justify-content-center py-3">
+                                    <div class="spinner-border text-secondary" role="status">
                                     <span class="sr-only">Loading...</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         @endif
                     </div>
                 </div>
