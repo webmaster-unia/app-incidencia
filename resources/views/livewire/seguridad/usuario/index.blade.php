@@ -49,77 +49,77 @@ class extends Component {
     }
     public function reset_modal(): void
     {
-            $this->reset(
-                'modo_modal',
-                'id_usuario',
-                'action_form',
-                'titulo_modal',
-                'alerta',
-                'mensaje',
-                'action',
-                'rol',
-                'trabajador',
-                'correo_usu',
-                'contrasena_usu',
-                'foto_usu',
-            );
-            $this->resetErrorBag();
-            $this->resetValidation();
+        $this->reset(
+            'modo_modal',
+            'id_usuario',
+            'action_form',
+            'titulo_modal',
+            'alerta',
+            'mensaje',
+            'action',
+            'rol',
+            'trabajador',
+            'correo_usu',
+            'contrasena_usu',
+            'foto_usu',
+        );
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
     // Metodo que carga el modal
     public function cargar(string $modo, ?int $id): void
     {
-            $this->reset_modal();
-            $this->modo_modal = $modo;
-            $this->id_usuario = $id;
-            if ($modo == 'crear') {
-                // Asignar los valores a las variables
-                $this->titulo_modal = 'Nuevo Registro';
-                $this->action_form = 'crear_usuario';
-                // Abrir el modal
-                $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
-            } elseif ($modo == 'editar') {
-                // Buscar usuario
-                $data = Usuario::query()
-                    ->findOrFail($id);
-            
-                // Asignar los valores a las variables
-                $this->titulo_modal = 'Editar Registro';
-                $this->action_form = 'editar_usuario';
-                $this->correo_usu = $data->correo_usu;
-                $this->nombre_usu = $data->nombre_usu;
-                $this->foto_usu = $data->foto_usu;
-                $this->estado_usu = $data->estado_usu;
-                // Abrir el modal
-                $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
-            } elseif ($modo == 'eliminar') {
-                // Buscar usuario
-                $data = Usuario::query()
-                    ->findOrFail($id);
+        $this->reset_modal();
+        $this->modo_modal = $modo;
+        $this->id_usuario = $id;
+        if ($modo == 'crear') {
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Nuevo Registro';
+            $this->action_form = 'crear_usuario';
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+        } elseif ($modo == 'editar') {
+            // Buscar usuario
+            $data = Usuario::query()
+                ->findOrFail($id);
+           
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Editar Registro';
+            $this->action_form = 'editar_usuario';
+            $this->correo_usu = $data->correo_usu;
+            $this->nombre_usu = $data->nombre_usu;
+            $this->foto_usu = $data->foto_usu;
+            $this->estado_usu = $data->estado_usu;
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+        } elseif ($modo == 'eliminar') {
+            // Buscar usuario
+            $data = Usuario::query()
+                ->findOrFail($id);
 
-                $this->titulo_modal = '';
-                $this->alerta = '¡Atención!';
-                $this->mensaje = '¿Está seguro de eliminar el usuario "' . $data->correo_usu. '"?';
-                $this->action = 'eliminar_usuario';
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = '¿Está seguro de eliminar el usuario "' . $data->correo_usu. '"?';
+            $this->action = 'eliminar_usuario';
 
-                // Abrir el modal
-                $this->dispatch('modal', modal: '#alerta', action: 'show');
-            } elseif ($modo == 'status') {
-                // Buscar el usuario
-                $data = Usuario::query()
-                    ->findOrFail($id);
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#alerta', action: 'show');
+        } elseif ($modo == 'status') {
+            // Buscar el usuario
+            $data = Usuario::query()
+                ->findOrFail($id);
 
-                $this->titulo_modal = '';
-                $this->alerta = '¡Atención!';
-                $this->mensaje = $data->estado_usu
-                    ? '¿Está seguro de desactivar el usuario "' . $data->correo_usu. '"?'
-                    : '¿Está seguro de activar el usuario "' . $data->correo_usu. '"?';
-                $this->action = 'cambiar_estado_usuario';
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = $data->estado_usu
+                ? '¿Está seguro de desactivar el usuario "' . $data->correo_usu. '"?'
+                : '¿Está seguro de activar el usuario "' . $data->correo_usu. '"?';
+            $this->action = 'cambiar_estado_usuario';
 
-                // Abrir el modal
-                $this->dispatch('modal', modal: '#alerta', action: 'show');
-            }
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#alerta', action: 'show');
+        }
     }
 
     public function crear_usuario(): void
