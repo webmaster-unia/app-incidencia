@@ -9,7 +9,7 @@ new
 #[Layout('components.layouts.app')]
 #[Title('Usuarios | SIGEIN OTI')]
 class extends Component {
-    use WithPagination;
+use WithPagination;
 
     // Define la variables para el Page Header
     public string $titulo_componente = 'Usuarios';
@@ -47,6 +47,7 @@ class extends Component {
                 ['url' => '', 'title' => 'Usuarios']
             ];
     }
+
     public function reset_modal(): void
     {
         $this->reset(
@@ -259,8 +260,6 @@ class extends Component {
         $this->reset_modal();
 
     }
-
-
 
     //Método para cargar la vista correspondiente
     public function with(): array
