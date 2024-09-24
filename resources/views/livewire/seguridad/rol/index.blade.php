@@ -88,6 +88,7 @@ class extends Component {
         $this->resetValidation();
     }
 
+    //metodos
     // Metodo para cargar los datos del rol
     public function cargar(string $modo, ?int $id): void
     {
