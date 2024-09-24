@@ -51,7 +51,7 @@ new class extends Component {
                     </a>
                     <ul class="pc-submenu">
                         <!-- Usuarios -->
-                        <li class="pc-item {{ 'seguridad.usuario.*' ? 'active' : '' }}">
+                        <li class="pc-item {{ request()->routeIs('seguridad.usuario.*') ? 'active' : ''}}">
                             <a class="pc-link" href="{{ route('seguridad.usuario.index') }}">
                                 Usuarios
                             </a>
