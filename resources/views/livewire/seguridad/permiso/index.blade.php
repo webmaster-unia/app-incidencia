@@ -9,6 +9,8 @@ new
 #[Layout('components.layouts.app')]
 #[Title('Permisos | SIGEIN OTI')]
 class extends Component {
+    
+    use WithPagination;
    // Define la variables para el Page Header
    public string $titulo_componente = 'Permisos';
     public array $breadcrumbs = [];
