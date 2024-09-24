@@ -4,6 +4,7 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
 use App\Models\{Usuario,Rol,Trabajador};
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 new 
 #[Layout('components.layouts.app')]
@@ -11,6 +12,9 @@ new
 class extends Component {
     // Sirve para usar la paginación
     use WithPagination;
+    // sirve para soportar la carga de archivos
+    use WithFileUploads;
+
     // Define la variables para el Page Header
     public string $titulo_componente = 'Usuarios';
     public array $breadcrumbs = [];
@@ -92,6 +96,8 @@ class extends Component {
             $this->correo_usu = $data->correo_usu;
             $this->nombre_usu = $data->nombre_usu;
             $this->foto_usu = $data->foto_usu;
+            $this->rol = $data->id_rol;
+            $this->trabajador = $data->id_tra;
             $this->estado_usu = $data->estado_usu;
             // Abrir el modal
             $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
@@ -141,7 +147,7 @@ class extends Component {
         $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
         $usuario->id_rol = $this->rol;
         $usuario->id_tra = $this->trabajador;
-        // $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : 'usuarios/default.png';
+        $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->storeAs('usuarios', $this->foto_usu->getClientOriginalName(), 'public'): 'usuarios/';
         $usuario->save();
 
         // Resetear el modal
@@ -188,11 +194,11 @@ class extends Component {
     {
         // Validar los campos
         $this->validate([
-            'correo_usu' => 'required|email|unique:tbl_usuario,correo_usu',
-            'contrasena_usu' => 'required|min:6',
+            'correo_usu' => 'required|email|unique:tbl_usuario,correo_usu,'.$this->id_usuario.',id_usu',
+            'contrasena_usu' => 'nullable|max:50|min:6',
             'rol' => 'required|exists:tbl_rol,id_rol',
             'trabajador' => 'required|exists:tbl_trabajador,id_tra',
-            //'foto_usu' => 'nullable|image|max:1024' // Opcional, pero debe ser una imagen
+            'foto_usu' => 'nullable|image|max:1024' // Opcional, pero debe ser una imagen
         ]);
 
         //editamos el usuario
@@ -202,7 +208,7 @@ class extends Component {
         $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
         $usuario->id_rol = $this->rol;
         $usuario->id_tra = $this->trabajador;
-        //$usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : $usuario->foto_usu;
+        $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : $usuario->foto_usu;
         $usuario->save();
         //Mostrar el mensaje de éxito
         $this->dispatch(
