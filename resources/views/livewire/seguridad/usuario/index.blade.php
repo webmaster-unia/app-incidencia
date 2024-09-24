@@ -464,7 +464,7 @@ class extends Component {
                             @enderror
                         </div>
                     </div>
-                    @if ($modo_modal == 'crear')
+                    
                     <div>
                         <label for="correo_usu" class="form-label">Correo del usuario<span class="text-danger">*</span>
                         </label>
@@ -479,8 +479,6 @@ class extends Component {
                         </div>
                         @enderror
                     </div>
-                    @endif
-                    @if ($modo_modal == 'crear')
                     <div>
                         <label for="contrasena_usu" class="form-label">Contraseña del Usuario<span
                                 class="text-danger">*</span>
@@ -499,7 +497,6 @@ class extends Component {
                             @enderror
                         </div>
                     </div>
-                    @endif
                     <div class="col-lg-12">
                         <label for="rol" class="form-label required">
                             Rol
