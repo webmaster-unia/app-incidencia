@@ -95,7 +95,6 @@ class extends Component {
             $this->action_form = 'editar_usuario';
             $this->correo_usu = $data->correo_usu;
             $this->nombre_usu = $data->nombre_usu;
-            $this->foto_usu = $data->foto_usu;
             $this->rol = $data->id_rol;
             $this->trabajador = $data->id_tra;
             $this->estado_usu = $data->estado_usu;
@@ -147,7 +146,7 @@ class extends Component {
         $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
         $usuario->id_rol = $this->rol;
         $usuario->id_tra = $this->trabajador;
-        $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->storeAs('usuarios', $this->foto_usu->getClientOriginalName(), 'public'): 'usuarios/';
+        $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->storeAs('usuarios', $this->foto_usu->getClientOriginalName(), 'public'): null;
         $usuario->save();
 
         // Resetear el modal
