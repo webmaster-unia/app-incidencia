@@ -67,6 +67,7 @@ class extends Component {
         $this->resetPage();
     }
 
+    // Metodo para resetear el modal
     public function reset_modal(): void
     {
         $this->reset(

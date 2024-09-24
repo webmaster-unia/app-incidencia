@@ -2,7 +2,8 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
-use App\Models\{Rol,Usuario,Permiso};
+use App\Models\{Rol,Usuario,Permiso,Usuario,Permiso};
+use Illuminate\Support\Str;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 
@@ -159,6 +160,382 @@ class extends Component {// Sirve para usar la paginación
                 $this->dispatch(
                     'toast',
                     text: 'No se puede cambiar el estado del rol de Administrador. Error',
+                    color: 'danger'
+                );
+                return;
+            }
+
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = $data->activo_rol
+                ? '¿Está seguro de desactivar el rol "' . $data->nombre_rol . '"?'
+                : '¿Está seguro de activar el rol "' . $data->nombre_rol . '"?';
+            $this->action = 'cambiar_estado_rol';
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'show'
+            );
+        } elseif ($modo === 'asignar') {
+            // Buscar el rol
+            $data = Rol::query()
+                ->findOrFail($id);
+
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Asignar Permisos';
+            $this->nombre = $data->nombre_rol;
+            $this->descripcion = $data->descripcion_rol;
+            $this->acciones = $data->acciones->pluck('id_acc')->toArray();
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#modal-asignar-permiso',
+                action: 'show'
+            );
+        }
+    }
+
+    // Metodo para asignar permisos a un rol
+    public function asignar(): void
+    {
+        // Validar que el rol exista
+        $rol = Rol::query()->findOrFail($this->id_rol);
+
+        // Asignar los permisos al rol
+        $rol->acciones()->sync($this->accionesSelecionadas);
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'Los permisos han sido asignados correctamente al rol "' . $rol->nombre_rol . '".',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#modal-asignar-permiso',
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para editar un rol
+    public function editar_rol(): void
+    {
+        // Validar los campos
+        $this->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string|max:255'
+        ]);
+
+        // Buscar el rol
+        $rol = Rol::query()
+            ->findOrFail($this->id_rol);
+
+        // Verificar si es el rol de administrador
+        if ($rol->nombre_rol === 'Administrador' && $rol->nombre_rol !== $this->nombre) {
+            // Mostrar mensaje de advertencia
+            $this->dispatch(
+                'toast',
+                text: 'No se puede cambiar el nombre del rol "Administrador".',
+                color: 'danger'
+            );
+            return;
+        }
+
+        // Actualizar los campos
+        $rol->nombre_rol = $this->nombre;
+        $rol->descripcion_rol = $this->descripcion;
+        $rol->slug_rol = Str::slug($this->nombre);
+        $rol->save();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'El rol "' . $rol->nombre_rol . '" ha sido actualizado correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#'.$this->nombre_modal,
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para crear un nuevo rol
+    public function crear_rol(): void
+    {
+        // Validar los campos
+        $this->validate([
+            'nombre' => 'required|string|max:255',
+            'descripcion' => 'required|string|max:255'
+        ]);
+
+        // Creamos el rol
+        $rol = new Rol();
+        $rol->nombre_rol = $this->nombre;
+        $rol->descripcion_rol = $this->descripcion;
+        $rol->slug_rol = Str::slug($this->nombre);
+        $rol->activo_rol = true;
+        $rol->save();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'El rol "' . $this->nombre . '" ha sido creado correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#'.$this->nombre_modal,
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para cambiar el estado de la complejidad
+    public function cambiar_estado_rol(): void
+    {
+        // Buscar la complejidad
+        $rol = Rol::query()
+            ->findOrFail($this->id_rol);
+
+        // Cambiar el estado de la complejidad
+        $rol->activo_rol= !$rol->activo_rol;
+        $rol->save();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'La complejidad "' . $rol->nombre_rol . '" ha sido ' . ($rol->activo_rol ? 'activada' : 'desactivada') . ' correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#alerta',
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo para eliminar un rol
+    public function eliminar_rol(): void
+    {
+        // Buscar el rol
+        $rol = Rol::query()
+            ->with('usuarios')
+            ->findOrFail($this->id_rol);
+
+        //
+        if ($rol->usuarios()->count() > 0) {
+            // Mostrar mensaje de error
+            $this->dispatch(
+                'toast',
+                text: 'No se puede eliminar el rol "' . $rol->nombre_rol . '" porque está asociado a un usuario."',
+                color: 'danger'
+            );
+            return;    
+        }
+
+        // Eliminar el rol
+        $rol->delete();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch(
+            'toast',
+            text: 'El rol "' . $rol->nombre_rol . '" ha sido eliminado correctamente.',
+            color: 'success'
+        );
+
+        // Cerrar el modal 
+        $this->dispatch('modal',
+            modal: '#alerta',
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+    }
+
+    // Metodo que renderiza la vista
+    public function with(): array
+    {
+        $roles = Rol::query()
+            ->search($this->search)
+            ->paginate($this->registros);
+        
+        $permisos = Permiso::query()
+            ->where('activo_per', true)
+            ->with('acciones')
+            ->get();
+
+        return [
+            'roles' => $roles,
+            'permisos' => $permisos
+        ];
+    }
+    // Sirve para usar la paginación
+    use WithPagination;
+
+    // Define la variables para el Page Header
+    public string $titulo_componente = 'Roles de Usuario';
+    public array $breadcrumbs = [];
+
+    // Define la variable para la cantidad de registros por página
+    #[Url(as: 'registros', except: 5)]
+    public int $registros = 5;
+
+    // Define la variable para el buscador
+    #[Url(as: 'buscador', except: '')]
+    public string $search = '';
+
+    // Variables del modal
+    public string $titulo_modal = 'Nuevo Rol';
+    public string $nombre_modal = 'modal-Rol';
+    public string $alerta = '';
+    public string $mensaje = '';
+    public string $action = '';
+    public array $acciones = [];
+
+    // Variables para el formulario
+    public string $modo_modal = 'crear';
+    public $id_rol = null;
+    public string $action_form = 'crear_rol';
+
+    // Variables para el formulario
+    #[Validate('required|string|max:255')]
+    public string $nombre = '';
+    #[Validate('required|string|max:255')]
+    public string $descripcion = '';
+
+    #[Validate('required|array|min:1')]
+    public  array $accionesSelecionadas=[];
+
+    // Metodo que se inicia con el componente
+    public function mount(): void
+    {
+        $this->titulo_componente = 'ROLES DE USUARIO';
+        $this->breadcrumbs = [
+            ['url' => route('inicio.index'), 'title' => 'Inicio'],
+            ['url' => '', 'title' => 'Seguridad'],
+            ['url' => '', 'title' => 'Roles']
+        ];
+    }
+
+    // Metodo para actualizar la busqueda
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    // Metodo para actualizar la cantidad de registros
+    public function updatedRegistros(): void
+    {
+        $this->resetPage();
+    }
+
+    // Metodo para resetear el modal
+    public function reset_modal(): void
+    {
+        $this->reset(
+            'nombre',
+            'descripcion',
+            'modo_modal',
+            'id_rol',
+            'action_form',
+            'titulo_modal',
+            'alerta',
+            'mensaje',
+            'action'
+        );
+        $this->resetErrorBag();
+        $this->resetValidation();
+    }
+
+    // Metodo para cargar los datos del rol
+    public function cargar(string $modo, ?int $id): void
+    {
+        $this->reset_modal();
+        $this->modo_modal = $modo;
+        $this->id_rol = $id;
+
+        if ($modo === 'crear') {
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Nuevo Rol';
+            $this->action_form = 'crear_rol';
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#'.$this->nombre_modal,
+                action: 'show'
+            );
+        } elseif ($modo === 'editar') {
+            // Buscar el rol
+            $data = Rol::query()
+            ->findOrFail($id);
+
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Editar Rol';
+            $this->action_form = 'editar_rol';
+            $this->nombre = $data->nombre_rol;
+            $this->descripcion = $data->descripcion_rol;
+
+            // Abrir el modal
+            $this->dispatch('modal',
+            modal: '#'.$this->nombre_modal,
+            action: 'show'
+            );
+
+        } elseif ($modo === 'eliminar') {
+            // Buscar el rol
+            $data = Rol::query()
+                ->findOrFail($id);
+
+            // Verificar si es el rol de administrador
+            if ($data->nombre_rol === 'Administrador') {
+                // Mostrar mensaje de error
+                $this->dispatch(
+                    'toast',
+                    text: 'No se puede eliminar el rol de Administrador.',
+                    color: 'danger'
+                );
+                return;
+            }
+
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = '¿Está seguro de eliminar el rol "' . $data->nombre_rol . '"?';
+            $this->action = 'eliminar_rol';
+
+            // Abrir el modal
+            $this->dispatch('modal',
+                modal: '#alerta',
+                action: 'show'
+            );
+        } elseif ($modo === 'status') {
+            // Buscar el rol
+            $data = Rol::query()
+                ->findOrFail($id);
+
+            // Verificar si es el rol de administrador
+            if ($data->nombre_rol === 'Administrador') {
+                // Mostrar mensaje de error
+                $this->dispatch(
+                    'toast',
+                    text: 'No se puede cambiar el estado del rol de Administrador.',
                     color: 'danger'
                 );
                 return;
