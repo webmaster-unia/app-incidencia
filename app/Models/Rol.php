@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+
 class Rol extends Model
 {
     use HasFactory;
@@ -25,7 +26,9 @@ class Rol extends Model
 
     protected $casts = [
         'activo_rol' => 'boolean'
+
     ];    
+
     
     // Relaciones
     public function usuarios(): HasMany

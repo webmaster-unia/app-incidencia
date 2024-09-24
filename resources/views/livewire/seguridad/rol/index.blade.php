@@ -29,7 +29,7 @@ class extends Component {// Sirve para usar la paginación
     public string $nombre_modal = 'modal-Rol';
     public string $alerta = '';
     public string $mensaje = '';
-    public string $action = '';
+    public string $action = ''; 
     public array $acciones = [];
 
     // Variables para el formulario
