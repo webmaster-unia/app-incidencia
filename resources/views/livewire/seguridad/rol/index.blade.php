@@ -137,7 +137,7 @@ class extends Component {// Sirve para usar la paginación
                 );
                 return;
             }
-
+            // Asignar los valores a las variables
             $this->titulo_modal = '';
             $this->alerta = '¡Atención!';
             $this->mensaje = '¿Está seguro de eliminar el rol "' . $data->nombre_rol . '"?';
@@ -158,7 +158,7 @@ class extends Component {// Sirve para usar la paginación
                 // Mostrar mensaje de error
                 $this->dispatch(
                     'toast',
-                    text: 'No se puede cambiar el estado del rol de Administrador.',
+                    text: 'No se puede cambiar el estado del rol de Administrador. Error',
                     color: 'danger'
                 );
                 return;
