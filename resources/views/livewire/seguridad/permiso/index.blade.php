@@ -5,12 +5,9 @@ use Livewire\Attributes\{Layout, Title, Url, Validate};
 use App\Models\{Permiso, Accion, RolPermiso};
 use Livewire\WithPagination;
 
-new
-#[Layout('components.layouts.app')]
-#[Title('Permisos | SIGEIN OTI')]
-class extends Component {
+new #[Layout('components.layouts.app')] #[Title('Permisos | SIGEIN OTI')] class extends Component {
     use WithPagination;
-   // Define la variables para el Page Header
+    // Define la variables para el Page Header
     public string $titulo_componente = 'Permisos';
     public array $breadcrumbs = [];
     // Define la variable para la cantidad de registros por página
@@ -32,7 +29,6 @@ class extends Component {
     public $id_permiso = null;
     public string $action_form = 'crear_permiso';
 
-
     // Variables para el formulario
     #[Validate('required|string|max:255')]
     public string $nombre = '';
@@ -45,34 +41,13 @@ class extends Component {
     public function mount(): void
     {
         $this->titulo_componente = 'Permisos';
-        $this->acciones = [
-            ['id_acc' => 1, 'nombre_acc' => 'Index', 'slug_acc' => 'index'],
-            ['id_acc' => 2, 'nombre_acc' => 'Crear', 'slug_acc' => 'create'],
-            ['id_acc' => 2, 'nombre_acc' => 'Editar', 'slug_acc' => 'edit'],
-            ['id_acc' => 3, 'nombre_acc' => 'Eliminar', 'slug_acc' => 'delete'],
-            ['id_acc' => 4, 'nombre_acc' => 'Cambia Estado', 'slug_acc' => 'status']
-        ];
-        $this->breadcrumbs = [
-            ['url' => route('inicio.index'), 'title' => 'Inicio'],
-            ['url' => '', 'title' => 'Seguridad'],
-            ['url' => '', 'title' => 'Permisos']
-        ];
+        $this->acciones = [['id_acc' => 1, 'nombre_acc' => 'Index', 'slug_acc' => 'index'], ['id_acc' => 2, 'nombre_acc' => 'Crear', 'slug_acc' => 'create'], ['id_acc' => 2, 'nombre_acc' => 'Editar', 'slug_acc' => 'edit'], ['id_acc' => 3, 'nombre_acc' => 'Eliminar', 'slug_acc' => 'delete'], ['id_acc' => 4, 'nombre_acc' => 'Cambia Estado', 'slug_acc' => 'status']];
+        $this->breadcrumbs = [['url' => route('inicio.index'), 'title' => 'Inicio'], ['url' => '', 'title' => 'Seguridad'], ['url' => '', 'title' => 'Permisos']];
     }
 
     public function reset_modal(): void
     {
-        $this->reset(
-            'nombre',
-            'modo_modal',
-            'id_permiso',
-            'action_form',
-            'titulo_modal',
-            'alerta',
-            'mensaje',
-            'action',
-            'accion_permiso',
-            'accionesSeleccionadas'
-        );
+        $this->reset('nombre', 'modo_modal', 'id_permiso', 'action_form', 'titulo_modal', 'alerta', 'mensaje', 'action', 'accion_permiso', 'accionesSeleccionadas');
         $this->resetErrorBag();
         $this->resetValidation();
     }
@@ -88,41 +63,36 @@ class extends Component {
             $this->titulo_modal = 'Nuevo Registro';
             $this->action_form = 'crear_permiso';
             // Abrir el modal
-            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+            $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'show');
         } elseif ($modo == 'editar') {
             // Buscar permiso
-            $data = Permiso::query()
-                ->findOrFail($id);
-           
+            $data = Permiso::query()->findOrFail($id);
+
             // Asignar los valores a las variables
             $this->titulo_modal = 'Editar Registro';
             $this->action_form = 'editar_permiso';
             $this->nombre = $data->nombre_per;
             $this->accionesSeleccionadas = $data->acciones()->pluck('nombre_acc')->toArray();
             // Abrir el modal
-            $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
+            $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'show');
         } elseif ($modo == 'eliminar') {
             // Buscar permiso
-            $data = Permiso::query()
-                ->findOrFail($id);
+            $data = Permiso::query()->findOrFail($id);
 
             $this->titulo_modal = '';
             $this->alerta = '¡Atención!';
-            $this->mensaje = '¿Está seguro de eliminar el permiso "' . $data->nombre_per. '"?';
+            $this->mensaje = '¿Está seguro de eliminar el permiso "' . $data->nombre_per . '"?';
             $this->action = 'eliminar_permiso';
 
             // Abrir el modal
             $this->dispatch('modal', modal: '#alerta', action: 'show');
         } elseif ($modo == 'status') {
             // Buscar la permiso
-            $data = Permiso::query()
-                ->findOrFail($id);
+            $data = Permiso::query()->findOrFail($id);
 
             $this->titulo_modal = '';
             $this->alerta = '¡Atención!';
-            $this->mensaje = $data->activo_per
-                ? '¿Está seguro de desactivar el permiso "' . $data->nombre_per. '"?'
-                : '¿Está seguro de activar el permiso "' . $data->nombre_per. '"?';
+            $this->mensaje = $data->activo_per ? '¿Está seguro de desactivar el permiso "' . $data->nombre_per . '"?' : '¿Está seguro de activar el permiso "' . $data->nombre_per . '"?';
             $this->action = 'cambiar_estado_permiso';
 
             // Abrir el modal
@@ -138,8 +108,8 @@ class extends Component {
             [
                 'id_acc' => count($this->acciones) + 1,
                 'nombre_acc' => $this->accion_permiso,
-                'slug_acc' => Str::slug($this->accion_permiso)
-            ]
+                'slug_acc' => Str::slug($this->accion_permiso),
+            ],
         ]);
         // Limpiar el campo
         $this->accion_permiso = '';
@@ -147,6 +117,7 @@ class extends Component {
         // Mostrar mensaje de éxito
         $this->dispatch('toast', text: 'La acción ha sido agregada correctamente.', color: 'success');
     }
+
     // Metodo para eliminar una accion
     public function eliminar_accion(int $id_acc): void
     {
@@ -158,7 +129,6 @@ class extends Component {
         // Mostrar mensaje de éxito
         $this->dispatch('toast', text: 'La acción ha sido eliminada correctamente.', color: 'success');
     }
-
 
     // Metodo para eliminar un registro de permiso
     public function eliminar_permiso(): void
@@ -172,49 +142,35 @@ class extends Component {
         if ($tiene_acciones) {
             //Verificar si las acciones tienen un rol asociado
             foreach ($permiso->acciones()->with('roles')->get() as $item) {
-            $tiene_acciones = $item->roles()->count() > 0 ? true : false; 
+                $tiene_acciones = $item->roles()->count() > 0 ? true : false;
                 if ($tiene_acciones) {
                     // Mostrar mensaje de error
-                    $this->dispatch(
-                        'toast',
-                        text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque la acción "' . $item->slug_acc . '" está asociado a un rol.',
-                        color: 'danger'
-                    );
+                    $this->dispatch('toast', text: 'No se puede eliminar el permiso "' . $permiso->nombre_per . '" porque la acción "' . $item->slug_acc . '" está asociado a un rol.', color: 'danger');
                     return;
+                }
             }
         }
-    }
-    foreach ($permiso->acciones()->with('roles')->get() as $item) {
-        $tiene_acciones = $item->roles()->count() > 0 ? true : false;
-        if($tiene_acciones){
-            //Mostrar mensaje de confirmacion
-            $this->dispatch(
-                'toast',
-                text: 'La acción "' . $item->slug_acc . '" está asociada a un rol.',
-                color: 'danger'
-            );
-            return;
+        foreach ($permiso->acciones()->with('roles')->get() as $item) {
+            $tiene_acciones = $item->roles()->count() > 0 ? true : false;
+            if ($tiene_acciones) {
+                //Mostrar mensaje de confirmacion
+                $this->dispatch('toast', text: 'La acción "' . $item->slug_acc . '" está asociada a un rol.', color: 'danger');
+                return;
+            }
         }
-    }
-    
-    // Eliminar las acciones del permiso
-    $permiso->acciones()->delete();
-    
-    // Eliminar el permiso
-    $permiso->delete();
-    
-    // Mostrar mensaje de éxito
-    $this->dispatch(
-        'toast',
-        text: 'El permiso "' . $permiso->nombre_per . '" y sus acciones asociadas han sido eliminados correctamente.',
-        color: 'success'
-    );
-    
 
-    // Cerrar el modal
-    $this->dispatch('modal', modal: '#alerta', action: 'hide');
+        // Eliminar las acciones del permiso
+        $permiso->acciones()->delete();
+
+        // Eliminar el permiso
+        $permiso->delete();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch('toast', text: 'El permiso "' . $permiso->nombre_per . '" y sus acciones asociadas han sido eliminados correctamente.', color: 'success');
+
+        // Cerrar el modal
+        $this->dispatch('modal', modal: '#alerta', action: 'hide');
     }
-    
 
     // Metodo para crear un nuevo permiso
     public function crear_permiso(): void
@@ -222,31 +178,31 @@ class extends Component {
         // Validar los campos
         $this->validate([
             'nombre' => 'required|string|max:255',
-            'accionesSeleccionadas' => 'required|array|min:1'
+            'accionesSeleccionadas' => 'required|array|min:1',
         ]);
 
         // Creamos el permiso
         $permiso = new Permiso();
         $permiso->nombre_per = $this->nombre;
         $permiso->activo_per = true;
-        $permiso->slug_per=Str::slug($this->nombre);
+        $permiso->slug_per = Str::slug($this->nombre);
         $permiso->save();
-        
+
         //Asignar las acciones al permiso
         foreach ($this->accionesSeleccionadas as $slug_acc) {
             $permiso_accion = new Accion();
             $permiso_accion->nombre_acc = $slug_acc;
-            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per.'-'.$slug_acc);
+            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per . '-' . $slug_acc);
             $permiso_accion->activo_acc = true;
             $permiso_accion->id_per = $permiso->id_per;
             $permiso_accion->save();
         }
 
         // Mostrar mensaje de éxito
-        $this->dispatch('toast', text: 'El permiso "' . $this->nombre. '" ha sido creado correctamente.', color: 'success');
+        $this->dispatch('toast', text: 'El permiso "' . $this->nombre . '" ha sido creado correctamente.', color: 'success');
 
         // Cerrar el modal
-        $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'hide');
+        $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'hide');
 
         // Limpiar los campos
         $this->reset_modal();
@@ -258,14 +214,13 @@ class extends Component {
         // Validar los campos
         $this->validate([
             'nombre' => 'required|string|max:255',
-            'accionesSeleccionadas' => 'required|array|min:1'
+            'accionesSeleccionadas' => 'required|array|min:1',
         ]);
 
         // Editamos el permiso
-        $permiso = Permiso::query()
-            ->findOrFail($this->id_permiso);
+        $permiso = Permiso::query()->findOrFail($this->id_permiso);
         $permiso->nombre_per = $this->nombre;
-        $permiso->slug_per=Str::slug($this->nombre);
+        $permiso->slug_per = Str::slug($this->nombre);
         $permiso->save();
 
         // Eliminar las relaciones de acción con rol
@@ -284,17 +239,17 @@ class extends Component {
         foreach ($this->accionesSeleccionadas as $slug_acc) {
             $permiso_accion = new Accion();
             $permiso_accion->nombre_acc = $slug_acc;
-            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per.'-'.$slug_acc);
+            $permiso_accion->slug_acc = Str::slug($permiso->nombre_per . '-' . $slug_acc);
             $permiso_accion->activo_acc = true;
             $permiso_accion->id_per = $permiso->id_per;
             $permiso_accion->save();
         }
 
         // Mostrar mensaje de éxito
-        $this->dispatch('toast', text: 'El permiso "' . $this->nombre. '" ha sido actualizado correctamente.', color: 'success');
+        $this->dispatch('toast', text: 'El permiso "' . $this->nombre . '" ha sido actualizado correctamente.', color: 'success');
 
         // Cerrar el modal
-        $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'hide');
+        $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'hide');
 
         // Limpiar los campos
         $this->reset_modal();
@@ -304,8 +259,7 @@ class extends Component {
     public function cambiar_estado_permiso(): void
     {
         // Buscar permiso
-        $permiso = Permiso::query()
-            ->findOrFail($this->id_permiso);
+        $permiso = Permiso::query()->findOrFail($this->id_permiso);
 
         // Cambiar el estado de permiso
         $permiso->activo_per = !$permiso->activo_per;
@@ -332,7 +286,7 @@ class extends Component {
         // dd($this->all());
 
         return [
-            'permisos' => $permisos
+            'permisos' => $permisos,
         ];
     }
 };
@@ -340,6 +294,7 @@ class extends Component {
 
 <div>
     <x-page.header :breadcrumbs="$breadcrumbs" :titulo="$titulo_componente" />
+    <!-- Page Content -->
     <div class="row">
         <div class="col-sm-12">
             <div class="card table-card">
@@ -395,71 +350,83 @@ class extends Component {
                                     </thead>
                                     <tbody>
                                         @forelse ($permisos as $item)
-                                        <tr wire:key="{{ $item->id_per }}">
-                                            <td>
-                                                {{ $item->id_per }}
-                                            </td>
-                                            <td>
-                                                {{ $item->nombre_per }}
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($item->activo_per)
-                                                <span class="badge bg-light-success rounded f-12"
-                                                    wire:click="cargar('status', {{ $item->id_per }})"
-                                                    style="cursor: pointer;">
-                                                    <i class="ti ti-circle-check me-1"></i>
-                                                    Activo
-                                                </span>
-                                                @else
-                                                <span class="badge bg-light-danger rounded f-12"
-                                                    wire:click="cargar('status', {{ $item->id_per }})"
-                                                    style="cursor: pointer;">
-                                                    <i class="ti ti-circle-x me-1"></i>
-                                                    Inactivo
-                                                </span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @forelse ($item->acciones as $nombre_acc)
-                                                <span class="badge text-bg-light text-dark rounded f-12">
-                                                    {{ $nombre_acc->slug_acc }}
-                                                </span>
-                                                @empty
-                                                <span class="badge text-bg-light text-dark rounded f-12">
-                                                    Sin Acciones
-                                                </span>
-                                                @endforelse
-                                                {{-- @php
-                                                dd($item->acciones)
-                                                @endphp --}}
-                                            </td>
-                                            <td class="text-center">
-                                                <ul class="list-inline me-auto mb-0">
-                                                    <li class="list-inline-item align-bottom" data-bs-toggle="tooltip"
-                                                        aria-label="Editar" data-bs-original-title="Editar"
-                                                        wire:click="cargar('editar', {{ $item->id_per }})">
-                                                        <a href="#"
-                                                            class="avtar avtar-xs btn-link-secondary btn-pc-default">
-                                                            <i class="ti ti-edit-circle f-18"></i>
-                                                        </a>
-                                                    </li>
-                                                    <li class="list-inline-item align-bottom" data-bs-toggle="tooltip"
-                                                        aria-label="Eliminar" data-bs-original-title="Eliminar"
-                                                        wire:click="cargar('eliminar', {{ $item->id_per }})">
-                                                        <a href="#"
-                                                            class="avtar avtar-xs btn-link-danger btn-pc-default">
-                                                            <i class="ti ti-trash f-18"></i>
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </td>
-                                        </tr>
+                                            <tr wire:key="{{ $item->id_per }}">
+                                                <td>
+                                                    {{ $item->id_per }}
+                                                </td>
+                                                <td>
+                                                    {{ $item->nombre_per }}
+                                                </td>
+                                                <td class="text-center">
+                                                    @if ($item->activo_per)
+                                                        <span class="badge bg-light-success rounded f-12"
+                                                            wire:click="cargar('status', {{ $item->id_per }})"
+                                                            style="cursor: pointer;">
+                                                            <i class="ti ti-circle-check me-1"></i>
+                                                            Activo
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-light-danger rounded f-12"
+                                                            wire:click="cargar('status', {{ $item->id_per }})"
+                                                            style="cursor: pointer;">
+                                                            <i class="ti ti-circle-x me-1"></i>
+                                                            Inactivo
+                                                        </span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @forelse ($item->acciones->take(3) as $nombre_acc)
+                                                        <span class="badge text-bg-light text-dark rounded f-12">
+                                                            {{ $nombre_acc->slug_acc }}
+                                                        </span>
+                                                    @empty
+                                                        <span class="badge text-bg-light text-dark rounded f-12">
+                                                            Sin Acciones
+                                                        </span>
+                                                    @endforelse
+
+                                                    @if ($item->acciones->count() > 3)
+                                                        <span class="badge text-bg-light text-dark rounded f-12" 
+                                                            data-bs-toggle="tooltip" 
+                                                            data-bs-html="true" 
+                                                            title="
+                                                                @foreach ($item->acciones->skip(3) as $nombre_acc_restante)
+                                                                    {{ $nombre_acc_restante->slug_acc }}<br>
+                                                                @endforeach">
+                                                            +{{ $item->acciones->count() - 3 }} más
+                                                        </span>
+                                                    @endif
+
+                                                </td>
+                                                <td class="text-center">
+                                                    <ul class="list-inline me-auto mb-0">
+                                                        <li class="list-inline-item align-bottom"
+                                                            data-bs-toggle="tooltip" aria-label="Editar"
+                                                            data-bs-original-title="Editar"
+                                                            wire:click="cargar('editar', {{ $item->id_per }})">
+                                                            <a href="#"
+                                                                class="avtar avtar-xs btn-link-secondary btn-pc-default">
+                                                                <i class="ti ti-edit-circle f-18"></i>
+                                                            </a>
+                                                        </li>
+                                                        <li class="list-inline-item align-bottom"
+                                                            data-bs-toggle="tooltip" aria-label="Eliminar"
+                                                            data-bs-original-title="Eliminar"
+                                                            wire:click="cargar('eliminar', {{ $item->id_per }})">
+                                                            <a href="#"
+                                                                class="avtar avtar-xs btn-link-danger btn-pc-default">
+                                                                <i class="ti ti-trash f-18"></i>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
                                         @empty
-                                        <tr>
-                                            <td colspan="5" class="text-center text-muted py-5">
-                                                No hay registros para mostrar.
-                                            </td>
-                                        </tr>
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted py-5">
+                                                    No hay registros para mostrar.
+                                                </td>
+                                            </tr>
                                         @endforelse
                                     </tbody>
                                 </table>
@@ -471,24 +438,24 @@ class extends Component {
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             @if ($permisos->hasPages())
-                            <div class="d-flex justify-content-between">
-                                <div class="d-flex align-items-center text-secondary">
-                                    Mostrando {{ $permisos->firstItem() }} -
-                                    {{ $permisos->lastItem() }}
-                                    de {{ $permisos->total() }} registros
+                                <div class="d-flex justify-content-between">
+                                    <div class="d-flex align-items-center text-secondary">
+                                        Mostrando {{ $permisos->firstItem() }} -
+                                        {{ $permisos->lastItem() }}
+                                        de {{ $permisos->total() }} registros
+                                    </div>
+                                    <div class="">
+                                        {{ $permisos->links() }}
+                                    </div>
                                 </div>
-                                <div class="">
-                                    {{ $permisos->links() }}
-                                </div>
-                            </div>
                             @else
-                            <div class="d-flex justify-content-between">
-                                <div class="d-flex align-items-center text-secondary">
-                                    Mostrando {{ $permisos->firstItem() }} -
-                                    {{ $permisos->lastItem() }}
-                                    de {{ $permisos->total() }} registros
+                                <div class="d-flex justify-content-between">
+                                    <div class="d-flex align-items-center text-secondary">
+                                        Mostrando {{ $permisos->firstItem() }} -
+                                        {{ $permisos->lastItem() }}
+                                        de {{ $permisos->total() }} registros
+                                    </div>
                                 </div>
-                            </div>
                             @endif
                         </div>
                     </div>
@@ -520,9 +487,9 @@ class extends Component {
                                 Ingrese el nombre del Permiso.
                             </small>
                             @error('nombre')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
                             @enderror
                         </div>
                         <div class="col-md-12">
@@ -549,42 +516,46 @@ class extends Component {
                         <div class="col-md-12">
                             <div class="row g-1">
                                 @foreach ($acciones as $item)
-                                <div class="col-6">
-                                    <div class="card mb-1">
-                                        <div class="py-1 px-2 d-flex justify-content-between align-items-center gap-2">
-                                            <div>
-                                                <input
-                                                    class="form-check-input me-1 @if ($errors->has('accionesSeleccionadas')) is-invalid @endif"
-                                                    type="checkbox" wire:model.live="accionesSeleccionadas"
-                                                    id="accion-{{ $item['id_acc'] }}" value="{{ $item['slug_acc'] }}">
-                                                <label for="accion-{{ $item['id_acc'] }}"
-                                                    class="@if ($errors->has('accionesSeleccionadas')) text-danger @endif">
-                                                    {{ $item['nombre_acc'] }}
-                                                </label>
+                                    <div class="col-6">
+                                        <div class="card mb-1">
+                                            <div
+                                                class="py-1 px-2 d-flex justify-content-between align-items-center gap-2">
+                                                <div>
+                                                    <input
+                                                        class="form-check-input me-1 @if ($errors->has('accionesSeleccionadas')) is-invalid @endif"
+                                                        type="checkbox" wire:model.live="accionesSeleccionadas"
+                                                        id="accion-{{ $item['id_acc'] }}"
+                                                        value="{{ $item['slug_acc'] }}">
+                                                    <label for="accion-{{ $item['id_acc'] }}"
+                                                        class="@if ($errors->has('accionesSeleccionadas')) text-danger @endif">
+                                                        {{ $item['nombre_acc'] }}
+                                                    </label>
+                                                </div>
+                                                <button type="button" class="btn btn-icon btn-link-danger"
+                                                    wire:click="eliminar_accion({{ $item['id_acc'] }})"
+                                                    wire:confirm="¿Está seguro de eliminar la acción?">
+                                                    <i class="ti ti-circle-x fs-4 text-danger"></i>
+                                                </button>
                                             </div>
-                                            <button type="button" class="btn btn-icon btn-link-danger"
-                                                wire:click="eliminar_accion({{ $item['id_acc'] }})"
-                                                wire:confirm="¿Está seguro de eliminar la acción?">
-                                                <i class="ti ti-circle-x fs-4 text-danger"></i>
-                                            </button>
                                         </div>
                                     </div>
-                                </div>
                                 @endforeach
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer animate__animated animate__fadeIn animate__faster">
-                    <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal" wire:click="reset_modal">
+                    <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal"
+                        wire:click="reset_modal">
                         Cerrar
                     </button>
-                    <button type="submit" class="btn btn-primary" style="width: 100px;" wire:loading.attr="disabled"
-                        wire:target="guardar">
+                    <button type="submit" class="btn btn-primary" style="width: 100px;"
+                        wire:loading.attr="disabled" wire:target="guardar">
                         <span wire:loading.remove wire:target="guardar">
                             Guardar
                         </span>
-                        <div class="spinner-border spinner-border-sm" role="status" wire:loading wire:target="guardar">
+                        <div class="spinner-border spinner-border-sm" role="status" wire:loading
+                            wire:target="guardar">
                             <span class="sr-only">Loading...</span>
                         </div>
                     </button>
@@ -600,37 +571,38 @@ class extends Component {
                 <div class="modal-body py-5 px-5">
                     <div class="row">
                         @if ($alerta != '' && $mensaje != '' && $action != '')
-                        <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
-                            <div class="d-flex flex-column text-center">
-                                <h4 class="text-center">
-                                    {{ $alerta }}
-                                </h4>
-                                <h5 class="text-center fw-medium">
-                                    {{ $mensaje }}
-                                </h5>
-                                <div class="row g-3 mt-2">
-                                    <div class="col-6">
-                                        <button type="button" class="btn btn-light-danger w-100"
-                                            wire:click="reset_modal" data-bs-dismiss="modal">
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                    <div class="col-6">
-                                        <button type="button" class="btn btn-primary w-100" wire:click="{{ $action }}">
-                                            Aceptar
-                                        </button>
+                            <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                                <div class="d-flex flex-column text-center">
+                                    <h4 class="text-center">
+                                        {{ $alerta }}
+                                    </h4>
+                                    <h5 class="text-center fw-medium">
+                                        {{ $mensaje }}
+                                    </h5>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-light-danger w-100"
+                                                wire:click="reset_modal" data-bs-dismiss="modal">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-primary w-100"
+                                                wire:click="{{ $action }}">
+                                                Aceptar
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
                         @else
-                        <div class="col-md-12">
-                            <div class="d-flex justify-content-center py-3">
-                                <div class="spinner-border text-secondary" role="status">
-                                    <span class="sr-only">Loading...</span>
+                            <div class="col-md-12">
+                                <div class="d-flex justify-content-center py-3">
+                                    <div class="spinner-border text-secondary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         @endif
                     </div>
                 </div>
