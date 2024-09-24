@@ -9,8 +9,8 @@ new
 #[Layout('components.layouts.app')]
 #[Title('Usuarios | SIGEIN OTI')]
 class extends Component {
-use WithPagination;
-
+    // Sirve para usar la paginación
+    use WithPagination;
     // Define la variables para el Page Header
     public string $titulo_componente = 'Usuarios';
     public array $breadcrumbs = [];
@@ -38,14 +38,15 @@ use WithPagination;
     public $trabajador= null;
     public string $action_form = 'crear_usuario';
 
-    // Metodo que se inicia con el componente
+    //Metodo que se inicia con el componente
     public function mount(): void
     {
-            $this->breadcrumbs = [
-                ['url' => route('inicio.index'), 'title' => 'Inicio'],
-                ['url' => '', 'title' => 'Seguridad'],
-                ['url' => '', 'title' => 'Usuarios']
-            ];
+        $this->titulo_componente = 'Usuarios';
+        $this->breadcrumbs = [
+            ['url' => route('inicio.index'), 'title' => 'Inicio'],
+            ['url' => '', 'title' => 'Seguridad'],
+            ['url' => '', 'title' => 'Usuarios']
+        ];
     }
 
     public function reset_modal(): void
@@ -447,14 +448,14 @@ use WithPagination;
     <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <form class="modal-content" wire:submit.prevent="{{ $action_form }}">
-                <div class="modal-header animate__animated animate__fadeIn animate__faster">
+                <div class="modal-header animate_animated animatefadeIn animate_faster">
                     <h5 class="modal-title">
                         {{ $titulo_modal }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
                         wire:click="reset_modal"></button>
                 </div>
-                <div class="modal-body animate__animated animate__fadeIn animate__faster">
+                <div class="modal-body animate_animated animatefadeIn animate_faster">
                     <div class="row-g3">
                         <div class="col-md-12">
                             <label class="form-label" for="foto_usu">
@@ -550,7 +551,7 @@ use WithPagination;
                         </div>
                         @enderror
                     </div>
-                    <div class="modal-footer animate__animated animate__fadeIn animate__faster">
+                    <div class="modal-footer animate_animated animatefadeIn animate_faster">
                         <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal"
                             wire:click="reset_modal">
                             Cerrar
@@ -578,7 +579,7 @@ use WithPagination;
                 <div class="modal-body py-5 px-5">
                     <div class="row">
                         @if ($alerta != '' && $mensaje != '' && $action != '')
-                        <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                        <div class="col-md-12 animate_animated animatefadeIn animate_faster">
                             <div class="d-flex flex-column text-center">
                                 <h4 class="text-center">
                                     {{ $alerta }}
