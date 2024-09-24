@@ -9,8 +9,7 @@ use Livewire\WithPagination;
 new 
 #[Layout('components.layouts.app')]
 #[Title('Roles | SIGEIN OTI')]
-class extends Component {
-    // Sirve para usar la paginación
+class extends Component {// Sirve para usar la paginación
     use WithPagination;
 
     // Define la variables para el Page Header
@@ -722,7 +721,7 @@ class extends Component {
                 </div>
             </form>
         </div>
-    </div>
+    </div>
     <!-- Alerta -->
     <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog"
         aria-hidden="true">

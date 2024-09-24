@@ -25,7 +25,7 @@ class Rol extends Model
 
     protected $casts = [
         'activo_rol' => 'boolean'
-    ];
+    ];    
     
     // Relaciones
     public function usuarios(): HasMany

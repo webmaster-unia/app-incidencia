@@ -422,7 +422,6 @@ class extends Component {
 
 <div>
     <x-page.header :breadcrumbs="$breadcrumbs" :titulo="$titulo_componente" />
-    <!-- Formulario -->
     <div class="row">
         <div class="col-sm-12">
             <div class="card table-card">

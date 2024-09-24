@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Accion extends Model
@@ -33,9 +33,10 @@ class Accion extends Model
     {
         return $this->belongsTo(Permiso::class, 'id_per');
     }
-
+    
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Rol::class, 'tbl_rol_permiso', 'id_acc', 'id_rol');
     }
+
 }

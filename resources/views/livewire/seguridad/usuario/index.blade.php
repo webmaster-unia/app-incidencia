@@ -5,11 +5,11 @@ use Livewire\Attributes\{Layout, Title, Url, Validate};
 use App\Models\{Usuario,Rol,Trabajador};
 use Livewire\WithPagination;
 
-new 
+new
 #[Layout('components.layouts.app')]
 #[Title('Usuarios | SIGEIN OTI')]
 class extends Component {
-    use WithPagination;
+use WithPagination;
 
     // Define la variables para el Page Header
     public string $titulo_componente = 'Usuarios';
@@ -47,24 +47,25 @@ class extends Component {
                 ['url' => '', 'title' => 'Usuarios']
             ];
     }
+
     public function reset_modal(): void
     {
-            $this->reset(
-                'modo_modal',
-                'id_usuario',
-                'action_form',
-                'titulo_modal',
-                'alerta',
-                'mensaje',
-                'action',
-                'rol',
-                'trabajador',
-                'correo_usu',
-                'contrasena_usu',
-                'foto_usu',
-            );
-            $this->resetErrorBag();
-            $this->resetValidation();
+        $this->reset(
+            'modo_modal',
+            'id_usuario',
+            'action_form',
+            'titulo_modal',
+            'alerta',
+            'mensaje',
+            'action',
+            'rol',
+            'trabajador',
+            'correo_usu',
+            'contrasena_usu',
+            'foto_usu',
+        );
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
     // Metodo que carga el modal
@@ -83,13 +84,15 @@ class extends Component {
                 // Buscar usuario
                 $data = Usuario::query()
                     ->findOrFail($id);
-            
+
                 // Asignar los valores a las variables
                 $this->titulo_modal = 'Editar Registro';
                 $this->action_form = 'editar_usuario';
                 $this->correo_usu = $data->correo_usu;
-                $this->nombre_usu = $data->nombre_usu;
+                $this->contrasena_usu = $data->contrasena_usu;
                 $this->foto_usu = $data->foto_usu;
+                $this->rol = $data->rol_usu;
+                $this->trabajador = $data->trabajador_usu;
                 $this->estado_usu = $data->estado_usu;
                 // Abrir el modal
                 $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'show');
@@ -98,28 +101,28 @@ class extends Component {
                 $data = Usuario::query()
                     ->findOrFail($id);
 
-                $this->titulo_modal = '';
-                $this->alerta = '¡Atención!';
-                $this->mensaje = '¿Está seguro de eliminar el usuario "' . $data->correo_usu. '"?';
-                $this->action = 'eliminar_usuario';
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = '¿Está seguro de eliminar el usuario "' . $data->correo_usu. '"?';
+            $this->action = 'eliminar_usuario';
 
-                // Abrir el modal
-                $this->dispatch('modal', modal: '#alerta', action: 'show');
-            } elseif ($modo == 'status') {
-                // Buscar el usuario
-                $data = Usuario::query()
-                    ->findOrFail($id);
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#alerta', action: 'show');
+        } elseif ($modo == 'status') {
+            // Buscar el usuario
+            $data = Usuario::query()
+                ->findOrFail($id);
 
-                $this->titulo_modal = '';
-                $this->alerta = '¡Atención!';
-                $this->mensaje = $data->estado_usu
-                    ? '¿Está seguro de desactivar el usuario "' . $data->correo_usu. '"?'
-                    : '¿Está seguro de activar el usuario "' . $data->correo_usu. '"?';
-                $this->action = 'cambiar_estado_usuario';
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = $data->estado_usu
+                ? '¿Está seguro de desactivar el usuario "' . $data->correo_usu. '"?'
+                : '¿Está seguro de activar el usuario "' . $data->correo_usu. '"?';
+            $this->action = 'cambiar_estado_usuario';
 
-                // Abrir el modal
-                $this->dispatch('modal', modal: '#alerta', action: 'show');
-            }
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#alerta', action: 'show');
+        }
     }
 
     public function crear_usuario(): void
@@ -141,14 +144,122 @@ class extends Component {
         $usuario->id_tra = $this->trabajador;
         // $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : 'usuarios/default.png';
         $usuario->save();
+        $this->dispatch(
+        'toast',
+        text: 'El usuario"'. $usuario->correo_usu."' ha sido creado.",
+        color: 'success'
+
+        );
 
         // Resetear el modal
         $this->reset_modal();
 
         // Cerrar el modal
-        $this->dispatch('modal', modal: '#'.$this->nombre_modal, action: 'hide');
+        $this->dispatch('modal',
+        modal: '#'.$this->nombre_modal,
+        action: 'hide');
     }
 
+    //Metodo de Eliminar Usuario
+    public function eliminar_usuario(): void
+    {
+        // Buscar el usuario
+        $usuario = Usuario::query()
+        ->findOrFail($this->id_usuario);
+
+        if ($usuario) {
+            $usuario->delete();
+
+            // Mostrar mensaje de éxito
+            $this->dispatch(
+            'toast',
+            text: 'El usuario "' . $usuario->correo_usu . '" ha sido eliminado.',
+            color: 'success'
+            );
+        } else {
+            // Mostrar mensaje de error
+            $this->dispatch(
+            'toast',
+            text: 'El usuario no fue encontrado.',
+            color: 'danger'
+            );
+        }
+
+        // Resetear el modal
+        $this->dispatch('modal',
+        modal: '#alerta',
+        action: 'hide');
+
+    }
+
+    //Metodo para editar Usuario
+    public function editar_usuario(): void
+    {
+        // Validar los campos
+        $this->validate([
+            'correo_usu' => 'required|email|unique:tbl_usuario,correo_usu',
+            'contrasena_usu' => 'required|min:6',
+            'rol' => 'required|exists:tbl_rol,id_rol',
+            'trabajador' => 'required|exists:tbl_trabajador,id_tra',
+            //'foto_usu' => 'nullable|image|max:1024' // Opcional, pero debe ser una imagen
+        ]);
+
+        //editamos el usuario
+        $usuario = Usuario::query()
+            ->findOrFail($this->id_usuario);
+        $usuario->correo_usu = $this->correo_usu;
+        $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
+        $usuario->id_rol = $this->rol;
+        $usuario->id_tra = $this->trabajador;
+        //$usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : $usuario->foto_usu;
+        $usuario->save();
+        //Mostrar el mensaje de éxito
+        $this->dispatch(
+        'toast',
+        text: 'El usuario "'.$usuario->correo_usu. '" ha sido actualizado.',
+        color:'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+        modal: '#'.$this->nombre_modal,
+        action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+
+
+    }
+
+    //Método para cambiar el estado del usuario
+    public function cambiar_estado_usuario():  void
+    {
+        //Buscamos el usuario
+        $usuario = Usuario::query()
+        ->findOrFail($this->id_usuario);
+
+        //Cambiar el estado de Usuario
+        $usuario->activo_usu = !$usuario->activo_usu;
+        $usuario->save();
+
+        //Mostrar el mensaje
+        $this->dispatch(
+        'toast',
+        text: 'El usuario "'.$usuario->correo_usu.'" ha sido ' . ($usuario->activo_usu ? 'activado' : 'desactivado') . ' correctamente.',
+        color: 'success'
+        );
+
+        // Cerrar el modal
+        $this->dispatch('modal',
+            modal: '#alerta',
+            action: 'hide'
+        );
+
+        // Limpiar los campos
+        $this->reset_modal();
+
+    }
 
     //Método para cargar la vista correspondiente
     public function with(): array
@@ -362,7 +473,7 @@ class extends Component {
                             @enderror
                         </div>
                     </div>
-                    @if ($modo_modal == 'crear')
+
                     <div>
                         <label for="correo_usu" class="form-label">Correo del usuario<span class="text-danger">*</span>
                         </label>
@@ -377,8 +488,6 @@ class extends Component {
                         </div>
                         @enderror
                     </div>
-                    @endif
-                    @if ($modo_modal == 'crear')
                     <div>
                         <label for="contrasena_usu" class="form-label">Contraseña del Usuario<span
                                 class="text-danger">*</span>
@@ -397,7 +506,6 @@ class extends Component {
                             @enderror
                         </div>
                     </div>
-                    @endif
                     <div class="col-lg-12">
                         <label for="rol" class="form-label required">
                             Rol
