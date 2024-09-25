@@ -71,8 +71,8 @@ new class extends Component {
                     </ul>
                 </li>
                 <!-- Gestion de Trabajador -->
-                <li class="pc-item">
-                    <a href="" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('trabajador.*') ? 'active' : '' }}">
+                    <a href="{{ route('gestion-trabajador.index') }}" class="pc-link">
                         <span class="pc-micon">
                             <svg class="pc-icon">
                                 <use xlink:href="#custom-user-add"></use>

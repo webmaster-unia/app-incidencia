@@ -33,6 +33,10 @@ Volt::route('/seguridad/permisos', 'seguridad.permiso.index')
     ->middleware('auth')
     ->name('seguridad.permiso.index');
 
+Volt::route('/trabajador', 'gestion-trabajador.index')
+    ->middleware('auth')
+    ->name('gestion-trabajador.index');
+
 Volt::route('/incidencia', 'gestion-incidencia.index')
     ->middleware('auth')
     ->name('gestion-incidencia.index');
