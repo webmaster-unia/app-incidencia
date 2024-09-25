@@ -204,7 +204,9 @@ class extends Component {
         $usuario = Usuario::query()
             ->findOrFail($this->id_usuario);
         $usuario->correo_usu = $this->correo_usu;
-        $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
+        if ($this->contrasena_usu) {
+            $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
+        }
         $usuario->id_rol = $this->rol;
         $usuario->id_tra = $this->trabajador;
         $usuario->foto_usu = $this->foto_usu ? $this->foto_usu->store('usuarios', 'public') : $usuario->foto_usu;
