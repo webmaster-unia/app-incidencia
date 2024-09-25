@@ -82,8 +82,8 @@ new class extends Component {
                     </a>
                 </li>
                 <!-- Gestion de Incidencia -->
-                <li class="pc-item ">
-                    <a href="" class="pc-link">
+                <li class="pc-item {{ request()->routeIs('incidencia.*') ? 'active' : '' }}">
+                    <a href="{{ route('gestion-incidencia.index') }}" class="pc-link">
                         <span class="pc-micon">
                             <svg class="pc-icon">
                                 <use xlink:href="#custom-folder-open"></use>
