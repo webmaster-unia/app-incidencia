@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TipoActivo extends Model
 {
@@ -22,5 +23,10 @@ class TipoActivo extends Model
     protected $casts = [
         'activo_tac' => 'boolean'
     ];
-}
 
+    // Relaciones
+    public function activosInformáticos()
+    {
+        return $this->hasMany(ActivoInformatico::class);
+    }
+}
