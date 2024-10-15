@@ -20,6 +20,9 @@ Volt::route('/seguridad/usuarios', 'seguridad.usuario.index')
 Volt::route('/seguridad/roles', 'seguridad.rol.index')
     ->middleware('auth')
     ->name('seguridad.rol.index');
+volt::route('/configuracion/activo-informatico', 'configuracion.activo-informatico.index')
+    ->middleware('auth')
+    ->name('configuracion.activo-informatico.index');
     
 Volt::route('/configuracion/oficinas', 'configuracion.oficina.index')
     ->middleware('auth')

@@ -107,8 +107,8 @@ new class extends Component {
                     </a>
                     <ul class="pc-submenu">
                         <!-- Activos Informáticos -->
-                        <li class="pc-item">
-                            <a class="pc-link" href="">
+                        <li class="pc-item {{ request()->routeIs('configuracion.activo-informatico.*') ? 'active' : '' }}">
+                            <a class="pc-link" href="{{ route('configuracion.activo-informatico.index') }}">
                                 Activos Informáticos
                             </a>
                         </li>
