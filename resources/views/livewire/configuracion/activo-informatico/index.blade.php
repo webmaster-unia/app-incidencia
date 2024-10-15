@@ -2,7 +2,7 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
-use App\Models\{Trabajador, TrabajadorActivo};
+use App\Models\{ActivoInformatico, TipoActivo};
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 
@@ -15,7 +15,7 @@ class extends Component {
     use WithPagination;
 
     // Define la variables para el Page Header
-    public string $titulo_componente = 'Gestión de Trabajadores';
+    public string $titulo_componente = 'Activo Informático';
     public array $breadcrumbs = [];
      // Define la variable para la cantidad de registros por página
      #[Url(as: 'registros', except: 5)]
@@ -27,13 +27,63 @@ class extends Component {
     // Metodo que se inicia con el componente
     public function mount(): void
     {
-        $this->titulo_componente = 'Gestión de Trabajadores';
+        $this->titulo_componente = 'Activo Informático';
         $this->breadcrumbs = [
             ['url' => route('inicio.index'), 'title' => 'Inicio'],
             ['url' => '', 'title' => 'Configuración'],
-            ['url' => '', 'title' => 'Gestion de Trabajador'],
+            ['url' => '', 'title' => 'Activo Informático'],
         ];
     }
+
+    // Metodo para actualizar la busqueda
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    // // Metodo para actualizar la cantidad de registros
+    // public function updatedRegistros(): void
+    // {
+    //     $this->resetPage();
+    // }
+
+    // // Metodo para cargar los datos de tipos de activos
+    // public function cargar(string $action, int $id = 0): void
+    // {
+    //     $this->action = $action;
+    //     $this->acciones = [
+    //         'crear' => 'crearActivo',
+    //         'editar' => 'editarActivo',
+    //         'eliminar' => 'eliminarActivo',
+    //         'status' => 'statusActivo',
+    //     ];
+
+    //     if ($action === 'crear') {
+    //         $this->titulo_modal = 'Nuevo Activo';
+    //         $this->nombre = '';
+    //         $this->nombreTipo = '';
+    //     } else {
+    //         $activo = ActivoInformatico::find($id);
+    //         $this->nombre = $activo->nombre_ain;
+    //         $this->nombreTipo = $activo->tipoActivo->nombre_tac;
+    //     }
+
+    //     $this->emit('openModal', $this->nombre_modal);
+    // }
+
+    // // Metodo que renderiza la vista
+    // public function with(): array
+    // {
+    //     $activos = ActivoInformatico::query()
+    //         ->with('tipoActivo')
+    //         ->search($this->search)
+    //         ->paginate($this->registros);
+
+    //     return [
+    //         'oficinas' => $activos
+    //     ];
+    // }
+   
 }; ?>
 
 <div>
@@ -44,10 +94,10 @@ class extends Component {
             <div class="card table-card">
                 <div class="card-header">
                     <h5>
-                        Listado de Trabajadores
+                        Listado de Activos Informáticos
                     </h5>
                     <small>
-                        Listado de trabajadores registrados en el sistema.
+                        Listado de activos informáticos registrados en el sistema.
                     </small>
                     <div class="card-header-right mt-3 me-3">
                         <button
@@ -214,4 +264,122 @@ class extends Component {
             </div>
         </div>
     </div>
+    <!-- Modal -->
+    {{-- <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <form class="modal-content" wire:submit="{{ $action_form }}">
+                <div class="modal-header animate__animated animate__fadeIn animate__faster">
+                    <h5 class="modal-title">
+                        {{ $titulo_modal }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        wire:click="reset_modal"></button>
+                </div>
+                <div class="modal-body animate__animated animate__fadeIn animate__faster">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label" for="nombre">
+                                Nombre del tipo activo <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                class="form-control @if ($errors->has('nombre')) is-invalid @elseif($nombre) is-valid @endif"
+                                wire:model.live="nombre" id="nombre" placeholder="Ingrese el nombre de la oficina">
+                            <small class="form-text text-muted">
+                                Ingrese el nombre del activo.
+                            </small>
+                            @error('nombre')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                        <div class="col-md-12">
+                            <div class="row gy-1 gx-3 align-items-center">
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Lista de activos
+                                    </label>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="input-group">
+                                        <input
+                                            type="text"
+                                            class="form-control @if ($errors->has('cargo')) is-invalid @elseif($cargo) is-valid @endif"
+                                            wire:model.live="cargo"
+                                            id="cargo"
+                                            placeholder="Ingrese el cargo de la oficina"
+                                        >
+                                        <button
+                                            class="btn btn-light-primary d-flex align-items-center"
+                                            type="button"
+                                            wire:click="agregar_cargo"
+                                        >
+                                            <i class="ti ti-plus fs-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="row g-1">
+                                @foreach ($cargos as $cargo)
+                                    <div class="col-6 col-lg-4">
+                                        <div
+                                            class="card mb-1"
+                                        >
+                                            <div
+                                                class="py-1 px-2 d-flex justify-content-between align-items-center gap-2"
+                                            >
+                                                <div>
+                                                    <input
+                                                        class="form-check-input me-1 @if ($errors->has('cargosSeleccionados')) is-invalid @endif"
+                                                        type="checkbox"
+                                                        wire:model.live="cargosSeleccionados"
+                                                        id="cargo-{{ $cargo->id_car }}"
+                                                        value="{{ $cargo->id_car }}"
+                                                    >
+                                                    <label
+                                                        for="cargo-{{ $cargo->id_car }}"
+                                                        class="@if ($errors->has('cargosSeleccionados')) text-danger @endif"
+                                                    >
+                                                        {{ $cargo->nombre_car }}
+                                                    </label>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-icon btn-link-danger"
+                                                    wire:click="eliminar_cargo({{ $cargo->id_car }})"
+                                                    wire:confirm="¿Está seguro de eliminar el cargo?"
+                                                >
+                                                    <i class="ti ti-square-x fs-4 text-danger"></i>
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer animate__animated animate__fadeIn animate__faster">
+                    <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal"
+                        wire:click="reset_modal">
+                        Cerrar
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="width: 100px;"
+                        wire:loading.attr="disabled" wire:target="guardar">
+                        <span wire:loading.remove wire:target="guardar">
+                            Guardar
+                        </span>
+                        <div class="spinner-border spinner-border-sm" role="status" wire:loading
+                            wire:target="guardar">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div> --}}
+    
 </div>
