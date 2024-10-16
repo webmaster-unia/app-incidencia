@@ -17,12 +17,14 @@ class extends Component {
     // Define la variables para el Page Header
     public string $titulo_componente = 'Gestión de Trabajadores';
     public array $breadcrumbs = [];
-     // Define la variable para la cantidad de registros por página
-     #[Url(as: 'registros', except: 5)]
-     public int $registros = 5;
-     // Define la variable para el buscador
-     #[Url(as: 'buscador', except: '')]
-     public string $search = '';
+
+    // Define la variable para la cantidad de registros por página
+    #[Url(as: 'registros', except: 5)]
+    public int $registros = 5;
+    
+    // Define la variable para el buscador
+    #[Url(as: 'buscador', except: '')]
+    public string $search = '';
 
     // Metodo que se inicia con el componente
     public function mount(): void
@@ -34,6 +36,18 @@ class extends Component {
             ['url' => '', 'title' => 'Gestion de Trabajador'],
         ];
     }
+
+    public function with(): array
+    {
+        $trabajadores = Trabajador::query()
+            ->search($this->search)
+            ->paginate($this->registros);
+
+        return [
+            'trabajadores' => $trabajadores,
+        ];
+    }
+
 }; ?>
 
 <div>
@@ -96,30 +110,37 @@ class extends Component {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th class="col-md-3">NOMBRE</th>
-                                            <th class="text-center">TIPO ACTIVO</th>
+                                            <th class="col-md-3">TRABAJADOR</th>
+                                            <th class="text-center">OFICINA</th>
+                                            <th class="text-center">CARGO</th>
+                                            <th class="text-center">F. CREACION</th>
                                             <th class="text-center">ESTADO</th>
                                             <th class="text-center">ACCIONES</th>
                                         </tr>
                                     </thead>
-                                    {{-- <tbody>
-                                        @forelse ($activos as $activo)
-                                            <tr wire:key="{{ $activo->id_ain }}">
+                                    <tbody>
+                                        @forelse ($trabajadores as $trabajador)
+                                            <tr wire:key="{{ $trabajador->id_tra }}">
                                                 <td>
-                                                    {{ $activo->id_ain }}
+                                                    {{ $trabajador->id_tra }}
                                                 </td>
                                                 <td>
-                                                    {{ $activo->nombre_ain }}
+                                                    {{ $trabajador->nombres_tra }}
                                                 </td>
                                                 <td>
-                                                    {{ $activo->nombre_tac }}
+                                                    {{ $trabajador->oficina_cargo->oficina->nombre_ofi }}
                                                 </td>
-                                                
+                                                <td>
+                                                    {{ $trabajador->oficina_cargo->cargo->nombre_car }}
+                                                </td>
                                                 <td class="text-center">
-                                                    @if ($activo->activo_ain)
+                                                    {{ \Carbon\Carbon::parse($trabajador->created_at)->format('d/m/Y') }}
+                                                </td>
+                                                <td class="text-center">
+                                                    @if ($trabajador->activo_tra)
                                                         <span
                                                             class="badge bg-light-success rounded f-12"
-                                                            wire:click="cargar('status', {{ $activo->id_ain }})"
+                                                            wire:click="cargar('status', {{ $trabajador->id_tra }})"
                                                             style="cursor: pointer;"
                                                         >
                                                             <i class="ti ti-circle-check me-1"></i>
@@ -128,7 +149,7 @@ class extends Component {
                                                     @else
                                                         <span
                                                             class="badge bg-light-danger rounded f-12"
-                                                            wire:click="cargar('status', {{ $activo->id_ain }})"
+                                                            wire:click="cargar('status', {{ $trabajador->id_tra }})"
                                                             style="cursor: pointer;"
                                                         >
                                                             <i class="ti ti-circle-x me-1"></i>
@@ -143,7 +164,7 @@ class extends Component {
                                                             data-bs-toggle="tooltip"
                                                             aria-label="Editar"
                                                             data-bs-original-title="Editar"
-                                                            wire:click="cargar('editar', {{ $activo->id_ain }})"
+                                                            wire:click="cargar('editar', {{ $trabajador->id_ain }})"
                                                         >
                                                             <a
                                                                 href="#"
@@ -157,7 +178,7 @@ class extends Component {
                                                             data-bs-toggle="tooltip"
                                                             aria-label="Eliminar"
                                                             data-bs-original-title="Eliminar"
-                                                            wire:click="cargar('eliminar', {{ $activo->id_ain }})"
+                                                            wire:click="cargar('eliminar', {{ $trabajador->id_ain }})"
                                                         >
                                                             <a
                                                                 href="#"
@@ -179,38 +200,38 @@ class extends Component {
                                                 </td>
                                             </tr>
                                         @endforelse
-                                    </tbody> --}}
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{-- <div class="card-footer pb-4">
+                <div class="card-footer pb-4">
                     <div class="row align-items-center">
                         <div class="col-md-12">
-                            @if ($oficinas->hasPages())
+                            @if ($trabajadores->hasPages())
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center text-secondary">
-                                        Mostrando {{ $oficinas->firstItem() }} -
-                                        {{ $oficinas->lastItem() }}
-                                        de {{ $oficinas->total() }} registros
+                                        Mostrando {{ $trabajadores->firstItem() }} -
+                                        {{ $trabajadores->lastItem() }}
+                                        de {{ $trabajadores->total() }} registros
                                     </div>
                                     <div class="">
-                                        {{ $oficinas->links() }}
+                                        {{ $trabajadores->links() }}
                                     </div>
                                 </div>
                             @else
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center text-secondary">
-                                        Mostrando {{ $oficinas->firstItem() }} -
-                                        {{ $oficinas->lastItem() }}
-                                        de {{ $oficinas->total() }} registros
+                                        Mostrando {{ $trabajadores->firstItem() }} -
+                                        {{ $trabajadores->lastItem() }}
+                                        de {{ $trabajadores->total() }} registros
                                     </div>
                                 </div>
                             @endif
                         </div>
                     </div>
-                </div> --}}
+                </div>
             </div>
         </div>
     </div>

@@ -5,7 +5,9 @@ use Livewire\Attributes\{Layout, Title, Url, Validate};
 use App\Models\{Permiso, Accion, RolPermiso};
 use Livewire\WithPagination;
 
-new #[Layout('components.layouts.app')] #[Title('Permisos | SIGEIN OTI')] class extends Component {
+new #[Layout('components.layouts.app')] 
+#[Title('Permisos | SIGEIN OTI')] 
+class extends Component {
     use WithPagination;
     // Define la variables para el Page Header
     public string $titulo_componente = 'Permisos';

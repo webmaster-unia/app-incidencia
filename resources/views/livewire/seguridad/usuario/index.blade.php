@@ -141,7 +141,7 @@ class extends Component {
         ]);
 
         // Crear el usuario
-        $usuario = new Usuario();
+        $usuario = new Usuario();  
         $usuario->correo_usu = $this->correo_usu;
         $usuario->contrasena_usu = Hash::make($this->contrasena_usu);
         $usuario->id_rol = $this->rol;

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class Trabajador extends Model
 {
@@ -43,6 +44,11 @@ class Trabajador extends Model
         $apellido = $this->apellido_paterno_tra;
         return $nombre . ' ' . $apellido;
     }
+
+    public function scopeSearch($query, $search)
+    {
+        if ($search) {
+            return $query->where(DB::raw("CONCAT(nombres_tra, ' ', apellido_paterno_tra, ' ', apellido_materno_tra)"), 'LIKE', "%$search%");
+        }
+    }
 }
-
-
