@@ -2,23 +2,51 @@
 
 use Livewire\Volt\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\{Layout, Title, Url, Validate};
+use App\Models\{Incidencia, usuario,trabajador_activo,complejidad};
+use Illuminate\Support\Str;
 
 new
 #[Layout('components.layouts.app')]
 #[Title('Gestion Incidencia | SIGEIN OTI')]
 class extends Component {
-    // Sirve para usar la paginación
-    use WithPagination;
+     // Sirve para usar la paginación
+     use WithPagination;
 
-    // Define la variables para el Page Header
-    public string $titulo_componente = 'Gestion Incidencia';
-    public array $breadcrumbs = [];
+     // Define la variables para el Page Header
+     public string $titulo_componente = 'Gestión de Incidencia';
+     public array $breadcrumbs = [];
+
      // Define la variable para la cantidad de registros por página
      #[Url(as: 'registros', except: 5)]
      public int $registros = 5;
+
      // Define la variable para el buscador
      #[Url(as: 'buscador', except: '')]
      public string $search = '';
+
+     // Metodo que se inicia con el componente
+     public function mount(): void
+     {
+         $this->titulo_componente = 'Gestión de Incidencia';
+         $this->breadcrumbs = [
+             ['url' => route('inicio.index'), 'title' => 'Inicio'],
+             ['url' => '', 'title' => 'Configuración'],
+             ['url' => '', 'title' => 'Gestion de Incidencia'],
+         ];
+     }
+
+    public function with(): array
+    {
+        $incidencias = Incidencia::query()
+            ->search($this->search)
+            ->paginate($this->registros);
+        return [
+            'incidencias' => $incidencias,
+        ];
+    }
+
+
 
 }; ?>
 
@@ -71,24 +99,27 @@ class extends Component {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th class="col-md-3">DESCRIPCIÓN</th>
+                                            <th class="col-md-3">INCIDENCIA</th>
+                                            <th class="text-center">SOLUCIÓN</th>
+                                            <th class="text-center">TRABAJADOR</th>
                                             <th class="text-center">ESTADO</th>
-                                            <th class="text-center">CREADO EN</th>
                                             <th class="text-center">ACCIONES</th>
                                         </tr>
                                     </thead>
-                                    {{--  <tbody>
+                                    <tbody>
                                         @forelse ($incidencias as $incidencia)
                                         <tr wire:key="{{ $incidencia->id_inc }}">
                                             <td>
                                                 {{ $incidencia->id_inc }}
                                             </td>
-                                            <td>
-                                                <div class="d-flex align-items-center justify-content-start gap-3">
-                                                    <div class="text-center">
-                                                        {{ $incidencia->descripcion_inc }}
-                                                    </div>
-                                                </div>
+                                            <td class="text-center">
+                                                {{ $incidencia->incidencia_inc  }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ $incidencia->solucion_inc }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ $incidencia->id_usu }}
                                             </td>
                                             <td class="text-center">
                                                 @if ($incidencia->estado_inc)
@@ -106,9 +137,6 @@ class extends Component {
                                                     Inactivo
                                                 </span>
                                                 @endif
-                                            </td>
-                                            <td class="text-center">
-                                                {{ \Carbon\Carbon::parse($incidencia->created_at)->format('d/m/Y') }}
                                             </td>
                                             <td class="text-center">
                                                 <ul class="list-inline me-auto mb-0">
@@ -138,13 +166,13 @@ class extends Component {
                                             </td>
                                         </tr>
                                         @endforelse
-                                    </tbody>  --}}
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{--  <div class="card-footer pb-4">
+                <div class="card-footer pb-4">
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             @if ($incidencias->hasPages())
@@ -169,7 +197,7 @@ class extends Component {
                             @endif
                         </div>
                     </div>
-                </div>  --}}
+                </div>
             </div>
         </div>
     </div>
