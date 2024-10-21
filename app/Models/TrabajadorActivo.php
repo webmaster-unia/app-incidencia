@@ -38,7 +38,7 @@ class TrabajadorActivo extends Model
         return $this->belongsTo(Trabajador::class, 'id_tra');
     }
 
-
+    
 
     public function activo_informatico(): BelongsTo
     {

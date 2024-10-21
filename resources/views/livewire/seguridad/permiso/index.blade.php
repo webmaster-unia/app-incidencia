@@ -5,8 +5,8 @@ use Livewire\Attributes\{Layout, Title, Url, Validate};
 use App\Models\{Permiso, Accion, RolPermiso};
 use Livewire\WithPagination;
 
-new #[Layout('components.layouts.app')] 
-#[Title('Permisos | SIGEIN OTI')] 
+new #[Layout('components.layouts.app')]
+#[Title('Permisos | SIGEIN OTI')]
 class extends Component {
     use WithPagination;
     // Define la variables para el Page Header
@@ -388,9 +388,9 @@ class extends Component {
                                                     @endforelse
 
                                                     @if ($item->acciones->count() > 3)
-                                                        <span class="badge text-bg-light text-dark rounded f-12" 
-                                                            data-bs-toggle="tooltip" 
-                                                            data-bs-html="true" 
+                                                        <span class="badge text-bg-light text-dark rounded f-12"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-html="true"
                                                             title="
                                                                 @foreach ($item->acciones->skip(3) as $nombre_acc_restante)
                                                                     {{ $nombre_acc_restante->slug_acc }}<br>
