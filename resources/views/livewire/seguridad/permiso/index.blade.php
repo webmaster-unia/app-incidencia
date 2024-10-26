@@ -8,16 +8,21 @@ use Livewire\WithPagination;
 new #[Layout('components.layouts.app')] 
 #[Title('Permisos | SIGEIN OTI')] 
 class extends Component {
+
     use WithPagination;
+
     // Define la variables para el Page Header
     public string $titulo_componente = 'Permisos';
     public array $breadcrumbs = [];
+
     // Define la variable para la cantidad de registros por página
     #[Url(as: 'registros', except: 5)]
     public int $registros = 5;
+
     // Define la variable para el buscador
     #[Url(as: 'buscador', except: '')]
     public string $search = '';
+    
     // Variables del modal
     public string $titulo_modal = 'Nueva Permiso';
     public string $nombre_modal = 'modal-permiso';
