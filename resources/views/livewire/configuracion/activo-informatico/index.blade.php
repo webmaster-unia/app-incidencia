@@ -2,37 +2,118 @@
 
 use Livewire\Volt\Component;
 use Livewire\Attributes\{Layout, Title, Url, Validate};
-use App\Models\{ActivoInformatico, TipoActivo};
+use App\Models\{ActivoInformatico, TipoActivo, TrabajadorActivo};
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 
-new 
-#[Layout('components.layouts.app')]
-#[Title('Activos Informaticos | SIGEIN OTI')]
-class extends Component {
-
+new #[Layout('components.layouts.app')] #[Title('Activos Informaticos | SIGEIN OTI')] class extends Component {
     // Sirve para usar la paginación
     use WithPagination;
 
     // Define la variables para el Page Header
-    public string $titulo_componente = 'Activo Informático';
+    public string $titulo_componente = 'Roles de Usuario';
     public array $breadcrumbs = [];
-     // Define la variable para la cantidad de registros por página
-     #[Url(as: 'registros', except: 5)]
-     public int $registros = 5;
-     // Define la variable para el buscador
-     #[Url(as: 'buscador', except: '')]
-     public string $search = '';
+
+    // Define la variable para la cantidad de registros por página
+    #[Url(as: 'registros', except: 5)]
+    public int $registros = 5;
+
+    // Define la variable para el buscador
+    #[Url(as: 'buscador', except: '')]
+    public string $search = '';
+
+    // Variables del modal
+    public string $titulo_modal = 'Nuevo Activo';
+    public string $nombre_modal = 'modal-Activo';
+    public string $alerta = '';
+    public string $mensaje = '';
+    public string $action = '';
+    public array $acciones = [];
+
+    // Variables para el formulario
+    public string $modo_modal = 'crear';
+    public $id_activo = null;
+    #[Validate('required')]
+    public $nombre = null;
+    #[Validate('required')]
+    public $tipo = null;
+    public string $action_form = 'crear_activo';
 
     // Metodo que se inicia con el componente
     public function mount(): void
     {
         $this->titulo_componente = 'Activo Informático';
-        $this->breadcrumbs = [
-            ['url' => route('inicio.index'), 'title' => 'Inicio'],
-            ['url' => '', 'title' => 'Configuración'],
-            ['url' => '', 'title' => 'Activo Informático'],
-        ];
+        $this->breadcrumbs = [['url' => route('inicio.index'), 'title' => 'Inicio'], ['url' => '', 'title' => 'Configuración'], ['url' => '', 'title' => 'Activo Informático']];
+    }
+
+    // Metodo para resetear el modal
+    public function reset_modal(): void
+    {
+        $this->reset('nombre', 'tipo', 'modo_modal', 'id_activo', 'action_form', 'titulo_modal', 'alerta', 'mensaje', 'action');
+        $this->resetErrorBag();
+        $this->resetValidation();
+    }
+
+    // Metodo para cargar el modal
+    public function cargar(string $modo, ?int $id): void
+    {
+        $this->reset_modal();
+        $this->modo_modal = $modo;
+        $this->id_activo = $id;
+
+        // Crear activo
+        if ($modo === 'crear') {
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Nuevo Activo';
+            $this->action_form = 'crear_activo';
+
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'show');
+            // Editar activo
+        } elseif ($modo === 'editar') {
+            // Buscar el activo informático
+            $data = ActivoInformatico::query()->findOrFail($id);
+
+            // Asignar los valores a las variables
+            $this->titulo_modal = 'Editar Activo';
+            $this->action_form = 'editar_activo';
+            $this->nombre = $data->nombre_ain;
+            $this->tipo = $data->id_tac;
+
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'show');
+        } elseif ($modo === 'eliminar') {
+            // Buscar el activo informático
+            $data = ActivoInformatico::query()->findOrFail($id);
+
+            // Verificar si el activo está asociado a un trabajador
+            $asociacion = TrabajadorActivo::where('id_ain', $id)->exists();
+
+            if ($asociacion) {
+                // Mostrar mensaje de error
+                $this->dispatch('toast', text: 'No se puede eliminar el activo porque está asociado a un trabajador.', color: 'danger');
+            } else {
+                // Asignar los valores a las variables
+                $this->titulo_modal = '';
+                $this->alerta = '¡Atención!';
+                $this->mensaje = '¿Está seguro de eliminar el activo "' . $data->nombre_ain . '"?';
+                $this->action = 'eliminar_activo';
+
+                // Abrir el modal
+                $this->dispatch('modal', modal: '#alerta', action: 'show');
+            }
+        } elseif ($modo === 'status') {
+            // Buscar el activo informático
+            $data = ActivoInformatico::query()->findOrFail($id);
+
+            $this->titulo_modal = '';
+            $this->alerta = '¡Atención!';
+            $this->mensaje = '¿Está seguro de cambiar el estado del activo "' . $data->nombre_ain . '"?';
+            $this->action = 'cambiar_estado_activo';
+
+            // Abrir el modal
+            $this->dispatch('modal', modal: '#alerta', action: 'show');
+        }
     }
 
     // Metodo para actualizar la busqueda
@@ -41,49 +122,118 @@ class extends Component {
         $this->resetPage();
     }
 
-    // // Metodo para actualizar la cantidad de registros
-    // public function updatedRegistros(): void
-    // {
-    //     $this->resetPage();
-    // }
+    // Metodo para actualizar la cantidad de registros
+    public function updatedRegistros(): void
+    {
+        $this->resetPage();
+    }
 
-    // // Metodo para cargar los datos de tipos de activos
-    // public function cargar(string $action, int $id = 0): void
-    // {
-    //     $this->action = $action;
-    //     $this->acciones = [
-    //         'crear' => 'crearActivo',
-    //         'editar' => 'editarActivo',
-    //         'eliminar' => 'eliminarActivo',
-    //         'status' => 'statusActivo',
-    //     ];
+    // Metodo para crear un nuevo activo
+    public function crear_activo(): void
+    {
+        // Validar los datos
+        $this->validate([
+            'nombre' => 'required',
+            'tipo' => 'required',
+        ]);
 
-    //     if ($action === 'crear') {
-    //         $this->titulo_modal = 'Nuevo Activo';
-    //         $this->nombre = '';
-    //         $this->nombreTipo = '';
-    //     } else {
-    //         $activo = ActivoInformatico::find($id);
-    //         $this->nombre = $activo->nombre_ain;
-    //         $this->nombreTipo = $activo->tipoActivo->nombre_tac;
-    //     }
+        // Crear el activo
+        ActivoInformatico::create([
+            'nombre_ain' => $this->nombre,
+            'id_tac' => $this->tipo,
+        ]);
 
-    //     $this->emit('openModal', $this->nombre_modal);
-    // }
+        // Mostrar mensaje de éxito
+        $this->dispatch('toast', text: 'El activo informático se ha creado correctamente.', color: 'success');
 
-    // // Metodo que renderiza la vista
-    // public function with(): array
-    // {
-    //     $activos = ActivoInformatico::query()
-    //         ->with('tipoActivo')
-    //         ->search($this->search)
-    //         ->paginate($this->registros);
+        // Cerrar el modal
+        $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'hide');
 
-    //     return [
-    //         'oficinas' => $activos
-    //     ];
-    // }
-   
+        // Resetear el modal
+        $this->reset_modal();
+    }
+
+    // Metodo para editar un activo
+    public function editar_activo(): void
+    {
+        // Validar los datos
+        $this->validate([
+            'nombre' => 'required',
+            'tipo' => 'required',
+        ]);
+
+        // Buscar el activo
+        $activo = ActivoInformatico::query()->findOrFail($this->id_activo);
+
+        // Actualizar el activo
+        $activo->update([
+            'nombre_ain' => $this->nombre,
+            'id_tac' => $this->tipo,
+        ]);
+
+        // Mostrar mensaje de éxito
+        $this->dispatch('toast', text: 'El activo informático se ha actualizado correctamente.', color: 'success');
+
+        // Cerrar el modal
+        $this->dispatch('modal', modal: '#' . $this->nombre_modal, action: 'hide');
+
+        // Resetear el modal
+        $this->reset_modal();
+    }
+
+    // Metodo para eliminar un activo
+    public function eliminar_activo(): void
+    {
+        // Buscar el activo
+        $activo = ActivoInformatico::query()->findOrFail($this->id_activo);
+
+        // Eliminar el activo
+        $activo->delete();
+
+        // Mostrar mensaje de éxito
+        $this->dispatch('toast', text: 'El activo informático se ha eliminado correctamente.', color: 'success');
+
+        // Cerrar el modal
+        $this->dispatch('modal', modal: '#alerta', action: 'hide');
+
+        // Resetear el modal
+        $this->reset_modal();
+    }
+
+    // Metodo para modificar el estado del activo
+    public function cambiar_estado_activo(): void
+    {
+        // Buscar el activo
+        $activo = ActivoInformatico::query()->findOrFail($this->id_activo);
+
+        // Cambiar el estado del activo
+        $activo->update([
+            'activo_ain' => !$activo->activo_ain,
+        ]);
+
+        // Mostrar mensaje de éxito
+        $this->dispatch('toast', text: 'El activo informático se ha actualizado correctamente.', color: 'success');
+
+        // Cerrar el modal
+        $this->dispatch('modal', modal: '#alerta', action: 'hide');
+
+        // Resetear el modal
+        $this->reset_modal();
+    }
+
+    // Metodo que renderiza la vista
+    public function with(): array
+    {
+        $activos = ActivoInformatico::query()
+            ->with('tipo_activo')
+            ->search($this->search)
+            ->paginate($this->registros);
+        $nombre = TipoActivo::query()->orderBy('nombre_tac')->get();
+        return [
+            'activos' => $activos,
+            'tipos' => $nombre,
+        ];
+    }
 }; ?>
 
 <div>
@@ -100,10 +250,7 @@ class extends Component {
                         Listado de activos informáticos registrados en el sistema.
                     </small>
                     <div class="card-header-right mt-3 me-3">
-                        <button
-                            class="btn btn-primary"
-                            wire:click="cargar('crear', null)"
-                        >
+                        <button class="btn btn-primary" wire:click="cargar('crear', null)">
                             Nuevo Registro
                         </button>
                     </div>
@@ -116,10 +263,7 @@ class extends Component {
                                 <!-- Cantida de registros por página -->
                                 <div class="datatable-dropdown">
                                     <label>
-                                        <select
-                                            class="datatable-selector"
-                                            wire:model.live="registros"
-                                        >
+                                        <select class="datatable-selector" wire:model.live="registros">
                                             <option value="5">5</option>
                                             <option value="10">10</option>
                                             <option value="15">15</option>
@@ -132,12 +276,8 @@ class extends Component {
                                 </div>
                                 <!-- Buscador -->
                                 <div class="datatable-search">
-                                    <input
-                                        type="search"
-                                        class="datatable-input"
-                                        placeholder="Buscar..."
-                                        wire:model.live="search"
-                                    >
+                                    <input type="search" class="datatable-input" placeholder="Buscar..."
+                                        wire:model.live="search">
                                 </div>
                             </div>
                             <!-- Tabla Activos -->
@@ -152,7 +292,7 @@ class extends Component {
                                             <th class="text-center">ACCIONES</th>
                                         </tr>
                                     </thead>
-                                    {{-- <tbody>
+                                    <tbody>
                                         @forelse ($activos as $activo)
                                             <tr wire:key="{{ $activo->id_ain }}">
                                                 <td>
@@ -161,26 +301,22 @@ class extends Component {
                                                 <td>
                                                     {{ $activo->nombre_ain }}
                                                 </td>
-                                                <td>
-                                                    {{ $activo->nombre_tac }}
+                                                <td class="text-center">
+                                                    {{ $activo->tipo_activo->nombre_tac }}
                                                 </td>
-                                                
+
                                                 <td class="text-center">
                                                     @if ($activo->activo_ain)
-                                                        <span
-                                                            class="badge bg-light-success rounded f-12"
+                                                        <span class="badge bg-light-success rounded f-12"
                                                             wire:click="cargar('status', {{ $activo->id_ain }})"
-                                                            style="cursor: pointer;"
-                                                        >
+                                                            style="cursor: pointer;">
                                                             <i class="ti ti-circle-check me-1"></i>
                                                             Activo
                                                         </span>
                                                     @else
-                                                        <span
-                                                            class="badge bg-light-danger rounded f-12"
+                                                        <span class="badge bg-light-danger rounded f-12"
                                                             wire:click="cargar('status', {{ $activo->id_ain }})"
-                                                            style="cursor: pointer;"
-                                                        >
+                                                            style="cursor: pointer;">
                                                             <i class="ti ti-circle-x me-1"></i>
                                                             Inactivo
                                                         </span>
@@ -188,31 +324,21 @@ class extends Component {
                                                 </td>
                                                 <td class="text-center">
                                                     <ul class="list-inline me-auto mb-0">
-                                                        <li
-                                                            class="list-inline-item align-bottom"
-                                                            data-bs-toggle="tooltip"
-                                                            aria-label="Editar"
+                                                        <li class="list-inline-item align-bottom"
+                                                            data-bs-toggle="tooltip" aria-label="Editar"
                                                             data-bs-original-title="Editar"
-                                                            wire:click="cargar('editar', {{ $activo->id_ain }})"
-                                                        >
-                                                            <a
-                                                                href="#"
-                                                                class="avtar avtar-xs btn-link-secondary btn-pc-default"
-                                                            >
+                                                            wire:click="cargar('editar', {{ $activo->id_ain }})">
+                                                            <a href="#"
+                                                                class="avtar avtar-xs btn-link-secondary btn-pc-default">
                                                                 <i class="ti ti-edit-circle f-18"></i>
                                                             </a>
                                                         </li>
-                                                        <li
-                                                            class="list-inline-item align-bottom"
-                                                            data-bs-toggle="tooltip"
-                                                            aria-label="Eliminar"
+                                                        <li class="list-inline-item align-bottom"
+                                                            data-bs-toggle="tooltip" aria-label="Eliminar"
                                                             data-bs-original-title="Eliminar"
-                                                            wire:click="cargar('eliminar', {{ $activo->id_ain }})"
-                                                        >
-                                                            <a
-                                                                href="#"
-                                                                class="avtar avtar-xs btn-link-danger btn-pc-default"
-                                                            >
+                                                            wire:click="cargar('eliminar', {{ $activo->id_ain }})">
+                                                            <a href="#"
+                                                                class="avtar avtar-xs btn-link-danger btn-pc-default">
                                                                 <i class="ti ti-trash f-18"></i>
                                                             </a>
                                                         </li>
@@ -221,53 +347,50 @@ class extends Component {
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td
-                                                    colspan="5"
-                                                    class="text-center text-muted py-5"
-                                                >
+                                                <td colspan="5" class="text-center text-muted py-5">
                                                     No hay registros para mostrar.
                                                 </td>
                                             </tr>
                                         @endforelse
-                                    </tbody> --}}
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{-- <div class="card-footer pb-4">
+                <div class="card-footer pb-4">
                     <div class="row align-items-center">
                         <div class="col-md-12">
-                            @if ($oficinas->hasPages())
+                            @if ($activos->hasPages())
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center text-secondary">
-                                        Mostrando {{ $oficinas->firstItem() }} -
-                                        {{ $oficinas->lastItem() }}
-                                        de {{ $oficinas->total() }} registros
+                                        Mostrando {{ $activos->firstItem() }} -
+                                        {{ $activos->lastItem() }}
+                                        de {{ $activos->total() }} registros
                                     </div>
                                     <div class="">
-                                        {{ $oficinas->links() }}
+                                        {{ $activos->links() }}
                                     </div>
                                 </div>
                             @else
                                 <div class="d-flex justify-content-between">
                                     <div class="d-flex align-items-center text-secondary">
-                                        Mostrando {{ $oficinas->firstItem() }} -
-                                        {{ $oficinas->lastItem() }}
-                                        de {{ $oficinas->total() }} registros
+                                        Mostrando {{ $activos->firstItem() }} -
+                                        {{ $activos->lastItem() }}
+                                        de {{ $activos->total() }} registros
                                     </div>
                                 </div>
                             @endif
                         </div>
                     </div>
-                </div> --}}
+                </div>
             </div>
         </div>
     </div>
-    <!-- Modal -->
-    {{-- <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Modal  de Activos-->
+    <div wire:ignore.self id="{{ $nombre_modal }}" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
-            <form class="modal-content" wire:submit="{{ $action_form }}">
+            <form class="modal-content" wire:submit.prevent="{{ $action_form }}">
                 <div class="modal-header animate__animated animate__fadeIn animate__faster">
                     <h5 class="modal-title">
                         {{ $titulo_modal }}
@@ -279,11 +402,11 @@ class extends Component {
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label class="form-label" for="nombre">
-                                Nombre del tipo activo <span class="text-danger">*</span>
+                                Nombre del Activo <span class="text-danger">*</span>
                             </label>
                             <input type="text"
                                 class="form-control @if ($errors->has('nombre')) is-invalid @elseif($nombre) is-valid @endif"
-                                wire:model.live="nombre" id="nombre" placeholder="Ingrese el nombre de la oficina">
+                                wire:model.live="nombre" id="nombre" placeholder="Ingrese el nombre del activo">
                             <small class="form-text text-muted">
                                 Ingrese el nombre del activo.
                             </small>
@@ -294,71 +417,22 @@ class extends Component {
                             @enderror
                         </div>
                         <div class="col-md-12">
-                            <div class="row gy-1 gx-3 align-items-center">
-                                <div class="col-md-12">
-                                    <label class="form-label">
-                                        Lista de activos
-                                    </label>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="input-group">
-                                        <input
-                                            type="text"
-                                            class="form-control @if ($errors->has('cargo')) is-invalid @elseif($cargo) is-valid @endif"
-                                            wire:model.live="cargo"
-                                            id="cargo"
-                                            placeholder="Ingrese el cargo de la oficina"
-                                        >
-                                        <button
-                                            class="btn btn-light-primary d-flex align-items-center"
-                                            type="button"
-                                            wire:click="agregar_cargo"
-                                        >
-                                            <i class="ti ti-plus fs-4"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="row g-1">
-                                @foreach ($cargos as $cargo)
-                                    <div class="col-6 col-lg-4">
-                                        <div
-                                            class="card mb-1"
-                                        >
-                                            <div
-                                                class="py-1 px-2 d-flex justify-content-between align-items-center gap-2"
-                                            >
-                                                <div>
-                                                    <input
-                                                        class="form-check-input me-1 @if ($errors->has('cargosSeleccionados')) is-invalid @endif"
-                                                        type="checkbox"
-                                                        wire:model.live="cargosSeleccionados"
-                                                        id="cargo-{{ $cargo->id_car }}"
-                                                        value="{{ $cargo->id_car }}"
-                                                    >
-                                                    <label
-                                                        for="cargo-{{ $cargo->id_car }}"
-                                                        class="@if ($errors->has('cargosSeleccionados')) text-danger @endif"
-                                                    >
-                                                        {{ $cargo->nombre_car }}
-                                                    </label>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-icon btn-link-danger"
-                                                    wire:click="eliminar_cargo({{ $cargo->id_car }})"
-                                                    wire:confirm="¿Está seguro de eliminar el cargo?"
-                                                >
-                                                    <i class="ti ti-square-x fs-4 text-danger"></i>
-                                                </button>
-
-                                            </div>
-                                        </div>
-                                    </div>
+                            <label class="form-label" for="tipo">
+                                Tipo de Activo <span class="text-danger">*</span>
+                            </label>
+                            <select
+                                class="form-control @if ($errors->has('tipo')) is-invalid @elseif($tipo) is-valid @endif"
+                                wire:model.live="tipo" id="tipo">
+                                <option value="">Seleccione un tipo de activo</option>
+                                @foreach ($tipos as $tipo)
+                                    <option value="{{ $tipo->id_tac }}">{{ $tipo->nombre_tac }}</option>
                                 @endforeach
-                            </div>
+                            </select>
+                            @error('tipo')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -368,18 +442,64 @@ class extends Component {
                         Cerrar
                     </button>
                     <button type="submit" class="btn btn-primary" style="width: 100px;"
-                        wire:loading.attr="disabled" wire:target="guardar">
-                        <span wire:loading.remove wire:target="guardar">
+                        wire:loading.attr="disabled" wire:target="{{ $action_form }}">
+                        <span wire:loading.remove wire:target="{{ $action_form }}">
                             Guardar
                         </span>
                         <div class="spinner-border spinner-border-sm" role="status" wire:loading
-                            wire:target="guardar">
+                            wire:target="{{ $action_form }}">
                             <span class="sr-only">Loading...</span>
                         </div>
                     </button>
                 </div>
             </form>
         </div>
-    </div> --}}
-    
+    </div>
+    <!-- Alerta -->
+    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body py-5 px-5">
+                    <div class="row">
+                        @if ($alerta != '' && $mensaje != '' && $action != '')
+                            <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                                <div class="d-flex flex-column text-center">
+                                    <h4 class="text-center">
+                                        {{ $alerta }}
+                                    </h4>
+                                    <h5 class="text-center fw-medium">
+                                        {{ $mensaje }}
+                                    </h5>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-light-danger w-100"
+                                                wire:click="reset_modal" data-bs-dismiss="modal">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-primary w-100"
+                                                wire:click="{{ $action }}">
+                                                Aceptar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="col-md-12">
+                                <div class="d-flex justify-content-center py-3">
+                                    <div class="spinner-border text-secondary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
