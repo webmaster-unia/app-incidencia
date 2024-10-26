@@ -13,7 +13,7 @@ class TrabajadorActivo extends Model
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
 
-    protected $table = 'tbl_tabajador_activo';
+    protected $table = 'tbl_trabajador_activo';
     protected $primaryKey = 'id_tat';
     protected $fillable = [
         'id_tat',
@@ -45,5 +45,3 @@ class TrabajadorActivo extends Model
         return $this->belongsTo(ActivoInformatico::class, 'id_ain');
     }
 }
-
-

@@ -31,4 +31,11 @@ class ActivoInformatico extends Model
     {
         return $this->belongsTo(TipoActivo::class, 'id_tac');
     }
+    
+    public function scopeSearch($query, $search)
+    {
+        if ($search) {
+            return $query->where('nombre_ain', 'LIKE', "%$search%");
+        }
+    }
 }
