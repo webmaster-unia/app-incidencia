@@ -49,7 +49,7 @@ class extends Component {// Sirve para usar la paginación
     // Metodo que se inicia con el componente
     public function mount(): void
     {
-        $this->titulo_componente = 'ROLES DE USUARIO';
+        $this->titulo_componente = 'Roles de usuario';
         $this->breadcrumbs = [
             ['url' => route('inicio.index'), 'title' => 'Inicio'],
             ['url' => '', 'title' => 'Seguridad'],
@@ -87,7 +87,6 @@ class extends Component {// Sirve para usar la paginación
         $this->resetValidation();
     }
 
-    //metodos
     // Metodo para cargar los datos del rol
     public function cargar(string $modo, ?int $id): void
     {
