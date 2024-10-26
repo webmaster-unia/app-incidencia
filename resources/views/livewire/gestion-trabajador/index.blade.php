@@ -8,7 +8,7 @@ use Livewire\WithPagination;
 
 new 
 #[Layout('components.layouts.app')]
-#[Title('Activos Informaticos | SIGEIN OTI')]
+#[Title('Gestion Trabajador | SIGEIN OTI')]
 class extends Component {
 
     // Sirve para usar la paginación
@@ -25,6 +25,21 @@ class extends Component {
     // Define la variable para el buscador
     #[Url(as: 'buscador', except: '')]
     public string $search = '';
+
+    // Variables del modal
+    public string $titulo_modal = 'Nueva Permiso';
+    public string $nombre_modal = 'modal-permiso';
+    public string $alerta = '';
+    public string $mensaje = '';
+    public string $action = '';
+    public array $acciones = [];
+
+    // Variables para el formulario
+    public string $modo_modal = 'crear';
+    public $id_trabajador = null;
+    public string $action_form = 'crear_trabajador';
+
+    // Variables para el formulario
 
     // Metodo que se inicia con el componente
     public function mount(): void
@@ -230,6 +245,53 @@ class extends Component {
                                 </div>
                             @endif
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alerta -->
+    <div wire:ignore.self id="alerta" class="modal fade" data-bs-backdrop="static" tabindex="-1" role="dialog"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body py-5 px-5">
+                    <div class="row">
+                        @if ($alerta != '' && $mensaje != '' && $action != '')
+                            <div class="col-md-12 animate__animated animate__fadeIn animate__faster">
+                                <div class="d-flex flex-column text-center">
+                                    <h4 class="text-center">
+                                        {{ $alerta }}
+                                    </h4>
+                                    <h5 class="text-center fw-medium">
+                                        {{ $mensaje }}
+                                    </h5>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-light-danger w-100"
+                                                wire:click="reset_modal" data-bs-dismiss="modal">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="button" class="btn btn-primary w-100"
+                                                wire:click="{{ $action }}">
+                                                Aceptar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="col-md-12">
+                                <div class="d-flex justify-content-center py-3">
+                                    <div class="spinner-border text-secondary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
