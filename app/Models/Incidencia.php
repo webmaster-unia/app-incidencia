@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 class Incidencia extends Model
 {
@@ -54,5 +55,12 @@ class Incidencia extends Model
     public function complejidad(): BelongsTo
     {
         return $this->belongsTo(Complejidad::class, 'id_com');
+    }
+
+    public function scopeSearch($query, $search)
+    {
+        if ($search) {
+            return $query->where(DB::raw("CONCAT(incidencia_inc, ' ', observacion_inc)"), 'LIKE', "%$search%");
+        }
     }
 }
